@@ -17,7 +17,7 @@ fi
     --with-field="$FIELD" --with-bignum="$BIGNUM" --with-asm="$ASM" --with-scalar="$SCALAR" \
     --enable-ecmult-static-precomputation="$STATICPRECOMPUTATION" --with-ecmult-gen-precision="$ECMULTGENPRECISION" \
     --enable-module-ecdh="$ECDH" --enable-module-recovery="$RECOVERY" \
-    --host="$HOST" $EXTRAFLAGS
+    --enable-module-schnorrsig="$SCHNORRSIG" --host="$HOST" "$EXTRAFLAGS"
 
 if [ -n "$BUILD" ]
 then
