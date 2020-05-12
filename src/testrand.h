@@ -41,4 +41,7 @@ static void secp256k1_rand_init(const char* hexseed);
 /** Print final test information. */
 static void secp256k1_rand_finish(void);
 
+/** Flip a single random bit in a byte array */
+static void secp256k1_rand_flip(unsigned char *b, size_t len);
+
 #endif /* SECP256K1_TESTRAND_H */
