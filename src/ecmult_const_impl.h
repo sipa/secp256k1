@@ -152,6 +152,10 @@ static void secp256k1_ecmult_const(secp256k1_gej *r, const secp256k1_ge *a, cons
 
     /* build wnaf representation for q. */
     int rsize = size;
+    if (secp256k1_ge_is_infinity(a)) {
+        secp256k1_gej_set_infinity(r);
+        return;
+    }
 #ifdef USE_ENDOMORPHISM
     if (size > 128) {
         rsize = 128;
