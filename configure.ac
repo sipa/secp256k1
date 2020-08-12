@@ -146,6 +146,11 @@ AC_ARG_ENABLE(module_schnorrsig,
     [enable_module_schnorrsig=$enableval],
     [enable_module_schnorrsig=no])
 
+AC_ARG_ENABLE(schnorrsig_even,
+    AS_HELP_STRING([--enable-schnorrsig-even],[use even tiebreaker for schnorrsig]),
+   [enable_schnorrsig_even=$enableval],
+   [enable_schnorrsig_even=no])
+
 AC_ARG_ENABLE(external_default_callbacks,
     AS_HELP_STRING([--enable-external-default-callbacks],[enable external default callback functions [default=no]]),
     [use_external_default_callbacks=$enableval],
@@ -508,6 +513,10 @@ if test x"$enable_module_schnorrsig" = x"yes"; then
   enable_module_extrakeys=yes
 fi
 
+if test x"$enable_schnorrsig_even" = x"yes"; then
+  AC_DEFINE(ENABLE_SCHNORRSIG_EVEN, 1, [Define this symbol to enable the even variant of the schnorrsig module])
+fi
+
 # Test if extrakeys is set after the schnorrsig module to allow the schnorrsig
 # module to set enable_module_extrakeys=yes
 if test x"$enable_module_extrakeys" = x"yes"; then
@@ -562,6 +571,7 @@ AM_CONDITIONAL([ENABLE_MODULE_ECDH], [test x"$enable_module_ecdh" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_RECOVERY], [test x"$enable_module_recovery" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_EXTRAKEYS], [test x"$enable_module_extrakeys" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_SCHNORRSIG], [test x"$enable_module_schnorrsig" = x"yes"])
+AM_CONDITIONAL([ENABLE_SCHNORRSIG_EVEN], [test x"$enable_schnorrsig_even" = x"yes"])
 AM_CONDITIONAL([USE_EXTERNAL_ASM], [test x"$use_external_asm" = x"yes"])
 AM_CONDITIONAL([USE_ASM_ARM], [test x"$set_asm" = x"arm"])
 
@@ -583,6 +593,7 @@ echo "  module ecdh             = $enable_module_ecdh"
 echo "  module recovery         = $enable_module_recovery"
 echo "  module extrakeys        = $enable_module_extrakeys"
 echo "  module schnorrsig       = $enable_module_schnorrsig"
+echo "    even                  = $enable_schnorrsig_even"
 echo
 echo "  asm                     = $set_asm"
 echo "  bignum                  = $set_bignum"

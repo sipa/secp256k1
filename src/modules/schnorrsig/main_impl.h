@@ -152,7 +152,12 @@ int secp256k1_schnorrsig_sign(const secp256k1_context* ctx, unsigned char *sig64
     /* We declassify r to allow using it as a branch point. This is fine
      * because r is not a secret. */
     secp256k1_declassify(ctx, &r, sizeof(r));
+#if defined(ENABLE_SCHNORRSIG_EVEN)
+    secp256k1_fe_normalize_var(&r.y);
+    if (secp256k1_fe_is_odd(&r.y)) {
+#else
     if (!secp256k1_fe_is_quad_var(&r.y)) {
+#endif
         secp256k1_scalar_negate(&k, &k);
     }
     secp256k1_fe_normalize_var(&r.x);
@@ -187,6 +192,9 @@ int secp256k1_schnorrsig_verify(const secp256k1_context* ctx, const unsigned cha
     secp256k1_ge pk;
     secp256k1_gej pkj;
     secp256k1_fe rx;
+#if defined(ENABLE_SCHNORRSIG_EVEN)
+    secp256k1_ge r;
+#endif
     secp256k1_sha256 sha;
     unsigned char buf[32];
     int overflow;
@@ -223,8 +231,14 @@ int secp256k1_schnorrsig_verify(const secp256k1_context* ctx, const unsigned cha
     secp256k1_gej_set_ge(&pkj, &pk);
     secp256k1_ecmult(&ctx->ecmult_ctx, &rj, &pkj, &e, &s);
 
+#if defined(ENABLE_SCHNORRSIG_EVEN)
+    secp256k1_ge_set_gej_var(&r, &rj);
+    secp256k1_fe_normalize_var(&r.y);
+    return !secp256k1_fe_is_odd(&r.y) && secp256k1_fe_equal_var(&rx, &r.x);
+#else
     return secp256k1_gej_has_quad_y_var(&rj) /* fails if rj is infinity */
             && secp256k1_gej_eq_x_var(&rx, &rj);
+#endif
 }
 
 #endif
