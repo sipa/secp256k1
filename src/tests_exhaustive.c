@@ -342,6 +342,14 @@ void test_exhaustive_sign(const secp256k1_context *ctx, const secp256k1_ge *grou
 #include "src/modules/recovery/tests_exhaustive_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_EXTRAKEYS
+#include "src/modules/extrakeys/tests_exhaustive_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_SCHNORRSIG
+#include "src/modules/schnorrsig/tests_exhaustive_impl.h"
+#endif
+
 int main(int argc, char** argv) {
     int i;
     int count = 2;
@@ -420,10 +428,15 @@ int main(int argc, char** argv) {
 #ifdef ENABLE_MODULE_RECOVERY
         test_exhaustive_recovery(ctx, group);
 #endif
+#ifdef ENABLE_MODULE_EXTRAKEYS
+        test_exhaustive_extrakeys(ctx, group);
+#endif
+#ifdef ENABLE_MODULE_SCHNORRSIG
+        test_exhaustive_schnorrsig(ctx, group);
+#endif
 
         secp256k1_context_destroy(ctx);
     }
-
 
     secp256k1_rand_finish();
 
