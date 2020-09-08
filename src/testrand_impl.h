@@ -110,7 +110,7 @@ static void secp256k1_rand256_test(unsigned char *b32) {
 
 static void secp256k1_rand_init(const char* hexseed) {
     unsigned char seed16[16] = {0};
-    if (hexseed) {
+    if (hexseed && strlen(hexseed) != 0) {
         int pos = 0;
         while (pos < 16 && hexseed[0] != 0 && hexseed[1] != 0) {
             unsigned short sh;

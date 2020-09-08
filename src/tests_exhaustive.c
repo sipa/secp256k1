@@ -64,6 +64,14 @@ void random_fe(secp256k1_fe *x) {
 }
 /** END stolen from tests.c */
 
+static uint32_t num_cores = 1;
+static uint32_t this_core = 0;
+
+SECP256K1_INLINE static int skip_section(uint64_t iter) {
+    if (num_cores == 1) return 0;
+    return ((((iter * 0xe7037ed1a0b428dbULL) >> 32) * num_cores) >> 32) != this_core;
+}
+
 int secp256k1_nonce_function_smallint(unsigned char *nonce32, const unsigned char *msg32,
                                       const unsigned char *key32, const unsigned char *algo16,
                                       void *data, unsigned int attempt) {
@@ -109,6 +117,7 @@ void test_exhaustive_addition(const secp256k1_ge *group, const secp256k1_gej *gr
     /* Check all addition formulae */
     for (j = 0; j < EXHAUSTIVE_TEST_ORDER; j++) {
         secp256k1_fe fe_inv;
+        if (skip_section(j)) continue;
         secp256k1_fe_inv(&fe_inv, &groupj[j].z);
         for (i = 0; i < EXHAUSTIVE_TEST_ORDER; i++) {
             secp256k1_ge zless_gej;
@@ -155,8 +164,10 @@ void test_exhaustive_addition(const secp256k1_ge *group, const secp256k1_gej *gr
 
 void test_exhaustive_ecmult(const secp256k1_context *ctx, const secp256k1_ge *group, const secp256k1_gej *groupj) {
     int i, j, r_log;
+    uint64_t iter = 0;
     for (r_log = 1; r_log < EXHAUSTIVE_TEST_ORDER; r_log++) {
         for (j = 0; j < EXHAUSTIVE_TEST_ORDER; j++) {
+            if (skip_section(iter++)) continue;
             for (i = 0; i < EXHAUSTIVE_TEST_ORDER; i++) {
                 secp256k1_gej tmp;
                 secp256k1_scalar na, ng;
@@ -189,11 +200,13 @@ static int ecmult_multi_callback(secp256k1_scalar *sc, secp256k1_ge *pt, size_t 
 
 void test_exhaustive_ecmult_multi(const secp256k1_context *ctx, const secp256k1_ge *group) {
     int i, j, k, x, y;
+    uint64_t iter = 0;
     secp256k1_scratch *scratch = secp256k1_scratch_create(&ctx->error_callback, 4096);
     for (i = 0; i < EXHAUSTIVE_TEST_ORDER; i++) {
         for (j = 0; j < EXHAUSTIVE_TEST_ORDER; j++) {
             for (k = 0; k < EXHAUSTIVE_TEST_ORDER; k++) {
                 for (x = 0; x < EXHAUSTIVE_TEST_ORDER; x++) {
+                    if (skip_section(iter++)) continue;
                     for (y = 0; y < EXHAUSTIVE_TEST_ORDER; y++) {
                         secp256k1_gej tmp;
                         secp256k1_scalar g_sc;
@@ -227,6 +240,7 @@ void r_from_k(secp256k1_scalar *r, const secp256k1_ge *group, int k, int* overfl
 
 void test_exhaustive_verify(const secp256k1_context *ctx, const secp256k1_ge *group) {
     int s, r, msg, key;
+    uint64_t iter = 0;
     for (s = 1; s < EXHAUSTIVE_TEST_ORDER; s++) {
         for (r = 1; r < EXHAUSTIVE_TEST_ORDER; r++) {
             for (msg = 1; msg < EXHAUSTIVE_TEST_ORDER; msg++) {
@@ -238,6 +252,8 @@ void test_exhaustive_verify(const secp256k1_context *ctx, const secp256k1_ge *gr
                     secp256k1_scalar s_times_k_s, msg_plus_r_times_sk_s;
                     int k, should_verify;
                     unsigned char msg32[32];
+
+                    if (skip_section(iter++)) continue;
 
                     secp256k1_scalar_set_int(&s_s, s);
                     secp256k1_scalar_set_int(&r_s, r);
@@ -277,10 +293,12 @@ void test_exhaustive_verify(const secp256k1_context *ctx, const secp256k1_ge *gr
 
 void test_exhaustive_sign(const secp256k1_context *ctx, const secp256k1_ge *group) {
     int i, j, k;
+    uint64_t iter = 0;
 
     /* Loop */
     for (i = 1; i < EXHAUSTIVE_TEST_ORDER; i++) {  /* message */
         for (j = 1; j < EXHAUSTIVE_TEST_ORDER; j++) {  /* key */
+            if (skip_section(iter++)) continue;
             for (k = 1; k < EXHAUSTIVE_TEST_ORDER; k++) {  /* nonce */
                 const int starting_k = k;
                 secp256k1_ecdsa_signature sig;
@@ -340,6 +358,17 @@ int main(int argc, char** argv) {
 
     /* find random seed */
     secp256k1_rand_init(argc > 2 ? argv[2] : NULL);
+
+    /* set up split processing */
+    if (argc > 4) {
+        num_cores = strtol(argv[3], NULL, 0);
+        this_core = strtol(argv[4], NULL, 0);
+        if (num_cores < 1 || this_core >= num_cores) {
+            fprintf(stderr, "Usage: %s [count] [seed] [numcores] [thiscore]", argv[0]);
+            return 1;
+        }
+        printf("running tests for core %lu out of %lu\n", (unsigned long)this_core, (unsigned long)num_cores);
+    }
 
     while (count--) {
         /* Build context */
