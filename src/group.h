@@ -138,4 +138,7 @@ static void secp256k1_ge_storage_cmov(secp256k1_ge_storage *r, const secp256k1_g
 /** Rescale a jacobian point by b which must be non-zero. Constant-time. */
 static void secp256k1_gej_rescale(secp256k1_gej *r, const secp256k1_fe *b);
 
+/** Determine if a point (which is assumed to be on the curve) is in the group. */
+static int secp256k1_ge_in_group(const secp256k1_ge* ge);
+
 #endif /* SECP256K1_GROUP_H */

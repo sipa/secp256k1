@@ -33,6 +33,9 @@ int secp256k1_xonly_pubkey_parse(const secp256k1_context* ctx, secp256k1_xonly_p
     if (!secp256k1_ge_set_xo_var(&pk, &x, 0)) {
         return 0;
     }
+    if (!secp256k1_ge_in_group(&pk)) {
+        return 0;
+    }
     secp256k1_xonly_pubkey_save(pubkey, &pk);
     return 1;
 }

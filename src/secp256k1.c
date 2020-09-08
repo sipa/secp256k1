@@ -280,6 +280,9 @@ int secp256k1_ec_pubkey_parse(const secp256k1_context* ctx, secp256k1_pubkey* pu
     if (!secp256k1_eckey_pubkey_parse(&Q, input, inputlen)) {
         return 0;
     }
+    if (!secp256k1_ge_in_group(&Q)) {
+        return 0;
+    }
     secp256k1_pubkey_save(pubkey, &Q);
     secp256k1_ge_clear(&Q);
     return 1;
