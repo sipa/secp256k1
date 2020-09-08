@@ -35,4 +35,10 @@ static void secp256k1_rand256_test(unsigned char *b32);
 /** Generate pseudorandom bytes with long sequences of zero and one bits. */
 static void secp256k1_rand_bytes_test(unsigned char *bytes, size_t len);
 
+/** Initialize the test RNG using (hex encoded) array up to 16 bytes, or randomly if hexseed is NULL. */
+static void secp256k1_rand_init(const char* hexseed);
+
+/** Print final test information. */
+static void secp256k1_rand_finish(void);
+
 #endif /* SECP256K1_TESTRAND_H */
