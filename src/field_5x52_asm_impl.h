@@ -304,19 +304,15 @@ __asm__ __volatile__(
     "mulq %%r12\n"
     "addq %%rax,%%rbx\n"
     "adcq %%rdx,%%rcx\n"
-    /* c = a4 * a4 */
+    /* c = a4 * a4; c >>= 64 (but leave the low 64 bits in %%rax) */
     "movq %%r14,%%rax\n"
     "mulq %%r14\n"
-    "movq %%rax,%%r8\n"
-    "movq %%rdx,%%r9\n"
-    /* d += (c & M) * R */
-    "andq %%r15,%%rax\n"
+    "movq %%rdx,%%r8\n"
+    /* d += c * R */
     "movq $0x1000003d10,%%rdx\n"
     "mulq %%rdx\n"
     "addq %%rax,%%rbx\n"
     "adcq %%rdx,%%rcx\n"
-    /* c >>= 52 (%%r8 only) */
-    "shrdq $52,%%r9,%%r8\n"
     /* t3 (tmp1) = d & M */
     "movq %%rbx,%%rsi\n"
     "andq %%r15,%%rsi\n"
@@ -341,9 +337,9 @@ __asm__ __volatile__(
     "mulq %%r12\n"
     "addq %%rax,%%rbx\n"
     "adcq %%rdx,%%rcx\n"
-    /* d += c * R */
+    /* d += c * (R << 12) */
     "movq %%r8,%%rax\n"
-    "movq $0x1000003d10,%%rdx\n"
+    "movq $0x1000003d10000,%%rdx\n"
     "mulq %%rdx\n"
     "addq %%rax,%%rbx\n"
     "adcq %%rdx,%%rcx\n"
