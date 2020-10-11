@@ -1,6 +1,5 @@
 env:
   WIDEMUL: auto
-  BIGNUM: auto
   STATICPRECOMPUTATION: yes
   ECMULTGENPRECISION: auto
   ASM: no
@@ -47,9 +46,8 @@ task:
     - env: {WIDEMUL: int128,  RECOVERY: yes,            EXPERIMENTAL: yes, SCHNORRSIG: yes}
     - env: {WIDEMUL: int128,                 ECDH: yes, EXPERIMENTAL: yes, SCHNORRSIG: yes}
     - env: {WIDEMUL: int128,  ASM: x86_64}
-    - env: {BIGNUM: no}
-    - env: {BIGNUM: no,       RECOVERY: yes,            EXPERIMENTAL: yes, SCHNORRSIG: yes}
-    - env: {BIGNUM: no,       STATICPRECOMPUTATION: no}
+    - env: {                  RECOVERY: yes,            EXPERIMENTAL: yes, SCHNORRSIG: yes}
+    - env: {                  STATICPRECOMPUTATION: no}
     - env: {BUILD: distcheck, WITH_VALGRIND: no, CTIMETEST: no, BENCH: no}
     - env: {CPPFLAGS: -DDETERMINISTIC}
     - env: {CFLAGS: -O0, CTIMETEST: no}
@@ -57,7 +55,6 @@ task:
         CFLAGS:  "-fsanitize=undefined -fno-omit-frame-pointer"
         LDFLAGS: "-fsanitize=undefined -fno-omit-frame-pointer"
         UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
-        BIGNUM: no
         ASM: x86_64
         ECDH: yes
         RECOVERY: yes
@@ -68,7 +65,6 @@ task:
     - env: { ECMULTGENPRECISION: 8 }
     - env:
         RUN_VALGRIND: yes
-        BIGNUM: no
         ASM: x86_64
         ECDH: yes
         RECOVERY: yes
@@ -102,11 +98,6 @@ task:
         CC: gcc
     - env:
         CC: clang
-  matrix:
-    - env:
-        BIGNUM: gmp
-    - env:
-        BIGNUM: no
   test_script:
     - nix-shell ci/shell-i686.nix --run ./ci/cirrus.sh
   << : *CAT_LOGS
@@ -162,7 +153,7 @@ task:
     # If we haven't restored from cached (and just run brew install), this is a no-op.
     - brew link valgrind
   brew_script:
-    - brew install automake libtool gmp gcc@9
+    - brew install automake libtool gcc@9
   test_script:
     - ./ci/cirrus.sh
   << : *CAT_LOGS
@@ -178,7 +169,6 @@ task:
     HOST: s390x-linux-gnu
     BUILD:
     WITH_VALGRIND: no
-    BIGNUM: no
     ECDH: yes
     RECOVERY: yes
     EXPERIMENTAL: yes

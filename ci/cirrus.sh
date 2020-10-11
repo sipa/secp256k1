@@ -18,7 +18,7 @@ sed -i'' -e 's@/usr/bin/file@$(which file)@g' configure
 
 ./configure \
     --enable-experimental="$EXPERIMENTAL" \
-    --with-test-override-wide-multiply="$WIDEMUL" --with-bignum="$BIGNUM" --with-asm="$ASM" \
+    --with-test-override-wide-multiply="$WIDEMUL" --with-asm="$ASM" \
     --enable-ecmult-static-precomputation="$STATICPRECOMPUTATION" --with-ecmult-gen-precision="$ECMULTGENPRECISION" \
     --enable-module-ecdh="$ECDH" --enable-module-recovery="$RECOVERY" \
     --enable-module-schnorrsig="$SCHNORRSIG" \
