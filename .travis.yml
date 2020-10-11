@@ -9,7 +9,6 @@ osx_image: xcode10.1
 addons:
   apt:
     packages:
-      - libgmp-dev
       - valgrind
       - libtool-bin
 compiler:
@@ -17,7 +16,7 @@ compiler:
   - gcc
 env:
   global:
-    - WIDEMUL=auto  BIGNUM=auto  STATICPRECOMPUTATION=yes  ECMULTGENPRECISION=auto  ASM=no  BUILD=check  WITH_VALGRIND=yes RUN_VALGRIND=no EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no SCHNORRSIG=no EXPERIMENTAL=no CTIMETEST=yes BENCH=yes ITERS=2
+    - WIDEMUL=auto  STATICPRECOMPUTATION=yes  ECMULTGENPRECISION=auto  ASM=no  BUILD=check  WITH_VALGRIND=yes RUN_VALGRIND=no EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no SCHNORRSIG=no EXPERIMENTAL=no CTIMETEST=yes BENCH=yes ITERS=2
   matrix:
     - WIDEMUL=int64   RECOVERY=yes
     - WIDEMUL=int64   ECDH=yes  EXPERIMENTAL=yes SCHNORRSIG=yes
@@ -25,16 +24,16 @@ env:
     - WIDEMUL=int128  RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes
     - WIDEMUL=int128  ECDH=yes EXPERIMENTAL=yes SCHNORRSIG=yes
     - WIDEMUL=int128                    ASM=x86_64
-    - BIGNUM=no
-    - BIGNUM=no       RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes
-    - BIGNUM=no       STATICPRECOMPUTATION=no
+    - WIDEMUL=int128  ASM=x86_64
+    - RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes
+    - STATICPRECOMPUTATION=no
     - BUILD=distcheck WITH_VALGRIND=no CTIMETEST=no BENCH=no
     - CPPFLAGS=-DDETERMINISTIC
     - CFLAGS=-O0 CTIMETEST=no
-    - CFLAGS="-fsanitize=undefined -fno-omit-frame-pointer" LDFLAGS="-fsanitize=undefined -fno-omit-frame-pointer" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1" BIGNUM=no ASM=x86_64 ECDH=yes RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes CTIMETEST=no
+    - CFLAGS="-fsanitize=undefined -fno-omit-frame-pointer" LDFLAGS="-fsanitize=undefined -fno-omit-frame-pointer" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1" ASM=x86_64 ECDH=yes RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes CTIMETEST=no
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
-    - RUN_VALGRIND=yes BIGNUM=no ASM=x86_64 ECDH=yes  RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes EXTRAFLAGS="--disable-openssl-tests" BUILD=
+    - RUN_VALGRIND=yes ASM=x86_64 EXPERIMENTAL=yes ECDH=yes  RECOVERY=yes EXTRAFLAGS="--disable-openssl-tests" BUILD=
 matrix:
   fast_finish: true
   include:
@@ -45,7 +44,6 @@ matrix:
         apt:
           packages:
             - gcc-multilib
-            - libgmp-dev:i386
             - valgrind
             - libtool-bin
             - libc6-dbg:i386
@@ -76,7 +74,6 @@ matrix:
         apt:
           packages:
             - gcc-multilib
-            - libgmp-dev:i386
             - valgrind
             - libtool-bin
             - libc6-dbg:i386
@@ -89,7 +86,7 @@ matrix:
 # because in xcode earlier than 11 they have a bug requiring updating the system which overall takes ~8 minutes.
 # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296
 before_install:
- - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install gmp valgrind gcc@9; fi
+ - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install valgrind gcc@9; fi
 
 before_script: ./autogen.sh
 
