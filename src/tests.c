@@ -2499,6 +2499,89 @@ void run_sqrt(void) {
     }
 }
 
+/***** INVERSE TESTS *****/
+
+static const secp256k1_scalar scalar_minus_one = SECP256K1_SCALAR_CONST(
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE,
+    0xBAAEDCE6, 0xAF48A03B, 0xBFD25E8C, 0xD0364140
+);
+
+static const secp256k1_fe fe_minus_one = SECP256K1_FE_CONST(
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFC2E
+);
+
+/* These tests rely on the identity:
+ *
+ * 1/(1/x - 1) + 1 = -1/(x-1)  for x!=0 and x!=1
+ */
+
+void test_inverse_scalar(unsigned char* b32, int var)
+{
+    secp256k1_scalar l, r;
+
+    secp256k1_scalar_set_b32(&l, b32, NULL);
+    if (secp256k1_scalar_is_zero(&l)) return;
+    secp256k1_scalar_add(&r, &l, &scalar_minus_one);
+    if (secp256k1_scalar_is_zero(&r)) return;
+    if (var) {
+        secp256k1_scalar_inverse_var(&l, &l);
+        secp256k1_scalar_inverse_var(&r, &r);
+    } else {
+        secp256k1_scalar_inverse(&l, &l);
+        secp256k1_scalar_inverse(&r, &r);
+    }
+    secp256k1_scalar_add(&l, &scalar_minus_one, &l);
+    if (var) {
+        secp256k1_scalar_inverse_var(&l, &l);
+    } else {
+        secp256k1_scalar_inverse(&l, &l);
+    }
+    secp256k1_scalar_add(&l, &l, &secp256k1_scalar_one);
+    secp256k1_scalar_add(&l, &r, &l);
+    CHECK(secp256k1_scalar_is_zero(&l));
+}
+
+void test_inverse_field(unsigned char* b32, int var)
+{
+    secp256k1_fe l, r;
+
+    secp256k1_fe_set_b32(&l, b32);
+    if (secp256k1_fe_normalizes_to_zero_var(&l)) return;
+    r = l;
+    secp256k1_fe_add(&r, &fe_minus_one);
+    if (secp256k1_fe_normalizes_to_zero_var(&r)) return;
+    if (var) {
+        secp256k1_fe_inv_var(&l, &l);
+        secp256k1_fe_inv_var(&r, &r);
+    } else {
+        secp256k1_fe_inv(&l, &l);
+        secp256k1_fe_inv(&r, &r);
+    }
+    secp256k1_fe_add(&l, &fe_minus_one);
+    if (var) {
+        secp256k1_fe_inv_var(&l, &l);
+    } else {
+        secp256k1_fe_inv(&l, &l);
+    }
+    secp256k1_fe_add(&l, &secp256k1_fe_one);
+    secp256k1_fe_add(&l, &r);
+    CHECK(secp256k1_fe_normalizes_to_zero_var(&l));
+}
+
+void run_inverse_tests(void)
+{
+    int i;
+    for (i = 0; i < 100 * count; ++i) {
+        unsigned char b32[32];
+        secp256k1_testrand256_test(b32);
+        test_inverse_scalar(b32, 0);
+        test_inverse_scalar(b32, 1);
+        test_inverse_field(b32, 0);
+        test_inverse_field(b32, 1);
+    }
+}
+
 /***** GROUP TESTS *****/
 
 void ge_equals_ge(const secp256k1_ge *a, const secp256k1_ge *b) {
@@ -6105,6 +6188,7 @@ int main(int argc, char **argv) {
     run_rand_int();
 
     run_ctz_tests();
+    run_inverse_tests();
 
     run_modinv_tests();
 
