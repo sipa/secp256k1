@@ -1,0 +1,360 @@
+/**********************************************************************
+ * Copyright (c) 2020 Peter Dettman                                   *
+ * Distributed under the MIT software license, see the accompanying   *
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
+ **********************************************************************/
+
+
+#ifndef SECP256K1_MODINV64_IMPL_H
+#define SECP256K1_MODINV64_IMPL_H
+
+#include "modinv64.h"
+
+#include "util.h"
+
+static void secp256k1_modinv64_signed62_verify(const secp256k1_modinv64_signed62* a) {
+    /* a must be in the range [-2^256, 2^256). */
+    VERIFY_CHECK(a->v[0] >> 62 == 0);
+    VERIFY_CHECK(a->v[1] >> 62 == 0);
+    VERIFY_CHECK(a->v[2] >> 62 == 0);
+    VERIFY_CHECK(a->v[3] >> 62 == 0);
+    VERIFY_CHECK(a->v[4] >> 8 == 0 || a->v[4] >> 8 == -(int64_t)1);
+}
+
+static uint64_t secp256k1_modinv64_divsteps_62(uint64_t eta, uint64_t f0, uint64_t g0, int64_t *t) {
+
+    uint64_t u = 1, v = 0, q = 0, r = 1;
+    uint64_t c1, c2, f = f0, g = g0, x, y, z;
+    int i;
+
+    for (i = 0; i < 62; ++i) {
+
+        VERIFY_CHECK((f & 1) == 1);
+        VERIFY_CHECK((u * f0 + v * g0) == f << i);
+        VERIFY_CHECK((q * f0 + r * g0) == g << i);
+
+        c1 = (int64_t)eta >> 63;
+        c2 = -(g & 1);
+
+        x = (f ^ c1) - c1;
+        y = (u ^ c1) - c1;
+        z = (v ^ c1) - c1;
+
+        g += x & c2;
+        q += y & c2;
+        r += z & c2;
+
+        c1 &= c2;
+        eta = (eta ^ c1) - (c1 + 1);
+
+        f += g & c1;
+        u += q & c1;
+        v += r & c1;
+
+        g >>= 1;
+        u <<= 1;
+        v <<= 1;
+    }
+
+    t[0] = (int64_t)u;
+    t[1] = (int64_t)v;
+    t[2] = (int64_t)q;
+    t[3] = (int64_t)r;
+
+    return eta;
+}
+
+static uint64_t secp256k1_modinv64_divsteps_62_var(uint64_t eta, uint64_t f0, uint64_t g0, int64_t *t) {
+    uint64_t u = 1, v = 0, q = 0, r = 1;
+    uint64_t f = f0, g = g0, m, w, x, y, z;
+    int i = 62, limit, zeros;
+
+    for (;;) {
+        /* Use a sentinel bit to count zeros only up to i. */
+        zeros = secp256k1_ctz64_var(g | (UINT64_MAX << i));
+
+        g >>= zeros;
+        u <<= zeros;
+        v <<= zeros;
+        eta -= zeros;
+        i -= zeros;
+
+        if (i <= 0) {
+            break;
+        }
+
+        VERIFY_CHECK((f & 1) == 1);
+        VERIFY_CHECK((g & 1) == 1);
+        VERIFY_CHECK((u * f0 + v * g0) == f << (62 - i));
+        VERIFY_CHECK((q * f0 + r * g0) == g << (62 - i));
+
+        if ((int64_t)eta < 0) {
+            eta = -eta;
+            x = f; f = g; g = -x;
+            y = u; u = q; q = -y;
+            z = v; v = r; r = -z;
+
+            /* Handle up to 6 divsteps at once, subject to eta and i. */
+            limit = ((int)eta + 1) > i ? i : ((int)eta + 1);
+            m = (UINT64_MAX >> (64 - limit)) & 63U;
+
+            w = (f * g * (f * f - 2)) & m;
+        } else {
+            /* Handle up to 4 divsteps at once, subject to eta and i. */
+            limit = ((int)eta + 1) > i ? i : ((int)eta + 1);
+            m = (UINT64_MAX >> (64 - limit)) & 15U;
+
+            w = f + (((f + 1) & 4) << 1);
+            w = (-w * g) & m;
+        }
+
+        g += f * w;
+        q += u * w;
+        r += v * w;
+
+        VERIFY_CHECK((g & m) == 0);
+    }
+
+    t[0] = (int64_t)u;
+    t[1] = (int64_t)v;
+    t[2] = (int64_t)q;
+    t[3] = (int64_t)r;
+
+    return eta;
+}
+
+static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp256k1_modinv64_signed62 *e, const int64_t *t, const secp256k1_modinv64_modinfo* modinfo) {
+    const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
+    const int64_t d0 = d->v[0], d1 = d->v[1], d2 = d->v[2], d3 = d->v[3], d4 = d->v[4];
+    const int64_t e0 = e->v[0], e1 = e->v[1], e2 = e->v[2], e3 = e->v[3], e4 = e->v[4];
+    const int64_t u = t[0], v = t[1], q = t[2], r = t[3];
+    int64_t md, me;
+    int128_t cd, ce;
+
+    cd = (int128_t)u * d0 + (int128_t)v * e0;
+    ce = (int128_t)q * d0 + (int128_t)r * e0;
+
+    /* Calculate the multiples of P to add, to zero the 62 bottom bits. We choose md, me
+     * from the centred range [-2^61, 2^61) to keep d, e within [-2^256, 2^256). */
+    md = ((int64_t)(modinfo->montmul4 * (uint64_t)cd)) >> 2;
+    me = ((int64_t)(modinfo->montmul4 * (uint64_t)ce)) >> 2;
+
+    if (modinfo->modulus.v[0]) {
+        cd += (int128_t)modinfo->modulus.v[0] * md;
+        ce += (int128_t)modinfo->modulus.v[0] * me;
+    }
+
+    VERIFY_CHECK(((int64_t)cd & M62) == 0); cd >>= 62;
+    VERIFY_CHECK(((int64_t)ce & M62) == 0); ce >>= 62;
+
+    cd += (int128_t)u * d1 + (int128_t)v * e1;
+    ce += (int128_t)q * d1 + (int128_t)r * e1;
+
+    if (modinfo->modulus.v[1]) {
+        cd += (int128_t)modinfo->modulus.v[1] * md;
+        ce += (int128_t)modinfo->modulus.v[1] * me;
+    }
+
+    d->v[0] = (int64_t)cd & M62; cd >>= 62;
+    e->v[0] = (int64_t)ce & M62; ce >>= 62;
+
+    cd += (int128_t)u * d2 + (int128_t)v * e2;
+    ce += (int128_t)q * d2 + (int128_t)r * e2;
+
+    if (modinfo->modulus.v[2]) {
+        cd += (int128_t)modinfo->modulus.v[2] * md;
+        ce += (int128_t)modinfo->modulus.v[2] * me;
+    }
+
+    d->v[1] = (int64_t)cd & M62; cd >>= 62;
+    e->v[1] = (int64_t)ce & M62; ce >>= 62;
+
+    cd += (int128_t)u * d3 + (int128_t)v * e3;
+    ce += (int128_t)q * d3 + (int128_t)r * e3;
+
+    if (modinfo->modulus.v[3]) {
+        cd += (int128_t)modinfo->modulus.v[3] * md;
+        ce += (int128_t)modinfo->modulus.v[3] * me;
+    }
+
+    d->v[2] = (int64_t)cd & M62; cd >>= 62;
+    e->v[2] = (int64_t)ce & M62; ce >>= 62;
+
+    cd += (int128_t)u * d4 + (int128_t)v * e4;
+    ce += (int128_t)q * d4 + (int128_t)r * e4;
+
+    if (modinfo->modulus.v[4]) {
+        cd += (int128_t)modinfo->modulus.v[4] * md;
+        ce += (int128_t)modinfo->modulus.v[4] * me;
+    }
+
+    d->v[3] = (int64_t)cd & M62; cd >>= 62;
+    e->v[3] = (int64_t)ce & M62; ce >>= 62;
+
+    d->v[4] = (int64_t)cd;
+    e->v[4] = (int64_t)ce;
+}
+
+static void secp256k1_modinv64_update_fg_62(secp256k1_modinv64_signed62 *f, secp256k1_modinv64_signed62 *g, const int64_t *t) {
+    const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
+    const int64_t f0 = f->v[0], f1 = f->v[1], f2 = f->v[2], f3 = f->v[3], f4 = f->v[4];
+    const int64_t g0 = g->v[0], g1 = g->v[1], g2 = g->v[2], g3 = g->v[3], g4 = g->v[4];
+    const int64_t u = t[0], v = t[1], q = t[2], r = t[3];
+    int128_t cf, cg;
+
+    cf = (int128_t)u * f0 + (int128_t)v * g0;
+    cg = (int128_t)q * f0 + (int128_t)r * g0;
+
+    VERIFY_CHECK(((int64_t)cf & M62) == 0); cf >>= 62;
+    VERIFY_CHECK(((int64_t)cg & M62) == 0); cg >>= 62;
+
+    cf += (int128_t)u * f1 + (int128_t)v * g1;
+    cg += (int128_t)q * f1 + (int128_t)r * g1;
+
+    f->v[0] = (int64_t)cf & M62; cf >>= 62;
+    g->v[0] = (int64_t)cg & M62; cg >>= 62;
+
+    cf += (int128_t)u * f2 + (int128_t)v * g2;
+    cg += (int128_t)q * f2 + (int128_t)r * g2;
+
+    f->v[1] = (int64_t)cf & M62; cf >>= 62;
+    g->v[1] = (int64_t)cg & M62; cg >>= 62;
+
+    cf += (int128_t)u * f3 + (int128_t)v * g3;
+    cg += (int128_t)q * f3 + (int128_t)r * g3;
+
+    f->v[2] = (int64_t)cf & M62; cf >>= 62;
+    g->v[2] = (int64_t)cg & M62; cg >>= 62;
+
+    cf += (int128_t)u * f4 + (int128_t)v * g4;
+    cg += (int128_t)q * f4 + (int128_t)r * g4;
+
+    f->v[3] = (int64_t)cf & M62; cf >>= 62;
+    g->v[3] = (int64_t)cg & M62; cg >>= 62;
+
+    f->v[4] = (int64_t)cf;
+    g->v[4] = (int64_t)cg;
+}
+
+static void secp256k1_modinv64_update_fg_62_var(int len, secp256k1_modinv64_signed62 *f, secp256k1_modinv64_signed62 *g, const int64_t *t) {
+    const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
+    const int64_t u = t[0], v = t[1], q = t[2], r = t[3];
+    int64_t fi, gi;
+    int128_t cf, cg;
+    int i;
+
+    VERIFY_CHECK(len > 0);
+
+    fi = f->v[0];
+    gi = g->v[0];
+
+    cf = (int128_t)u * fi + (int128_t)v * gi;
+    cg = (int128_t)q * fi + (int128_t)r * gi;
+
+    VERIFY_CHECK(((int64_t)cf & M62) == 0); cf >>= 62;
+    VERIFY_CHECK(((int64_t)cg & M62) == 0); cg >>= 62;
+
+    for (i = 1; i < len; ++i) {
+        fi = f->v[i];
+        gi = g->v[i];
+
+        cf += (int128_t)u * fi + (int128_t)v * gi;
+        cg += (int128_t)q * fi + (int128_t)r * gi;
+
+        f->v[i - 1] = (int64_t)cf & M62; cf >>= 62;
+        g->v[i - 1] = (int64_t)cg & M62; cg >>= 62;
+    }
+
+    f->v[len - 1] = (int64_t)cf;
+    g->v[len - 1] = (int64_t)cg;
+}
+
+static void secp256k1_modinv64(int* sign, secp256k1_modinv64_signed62* x, const secp256k1_modinv64_modinfo* modinfo) {
+    /* Modular inversion based on the paper "Fast constant-time gcd computation and
+     * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
+
+    int64_t t[4];
+    secp256k1_modinv64_signed62 d = {{0, 0, 0, 0, 0}};
+    secp256k1_modinv64_signed62 e = {{1, 0, 0, 0, 0}};
+    secp256k1_modinv64_signed62 f = modinfo->modulus;
+    secp256k1_modinv64_signed62 g = *x;
+    int i;
+    uint64_t eta;
+
+    /* The paper uses 'delta'; eta == -delta (a performance tweak).
+     *
+     * If the maximum bitlength of g is known to be less than 256, then eta can be set
+     * initially to -(1 + (256 - maxlen(g))), and only (741 - (256 - maxlen(g))) total
+     * divsteps are needed. */
+    eta = -(uint64_t)1;
+
+    for (i = 0; i < 12; ++i) {
+        eta = secp256k1_modinv64_divsteps_62(eta, f.v[0], g.v[0], t);
+        secp256k1_modinv64_update_de_62(&d, &e, t, modinfo);
+        secp256k1_modinv64_update_fg_62(&f, &g, t);
+    }
+
+    /* At this point sufficient iterations have been performed that g must have reached 0
+     * and (if g was not originally 0) f must now equal +/- GCD of the initial f, g
+     * values i.e. +/- 1, and d now contains +/- the modular inverse. */
+    VERIFY_CHECK((g.v[0] | g.v[1] | g.v[2] | g.v[3] | g.v[4]) == 0);
+
+    *sign = (f.v[0] >> 1) & 1;
+    *x = d;
+}
+
+static void secp256k1_modinv64_var(int* sign, secp256k1_modinv64_signed62 *x, const secp256k1_modinv64_modinfo* modinfo) {
+    /* Modular inversion based on the paper "Fast constant-time gcd computation and
+     * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
+
+    int64_t t[4];
+    secp256k1_modinv64_signed62 d = {{0, 0, 0, 0, 0}};
+    secp256k1_modinv64_signed62 e = {{1, 0, 0, 0, 0}};
+    secp256k1_modinv64_signed62 f = modinfo->modulus;
+    secp256k1_modinv64_signed62 g = *x;
+    int i, j, len = 5;
+    uint64_t eta;
+    int64_t cond, fn, gn;
+
+    /* The paper uses 'delta'; eta == -delta (a performance tweak).
+     *
+     * If g has leading zeros (w.r.t 256 bits), then eta can be set initially to
+     * -(1 + clz(g)), and the worst-case divstep count would be only (741 - clz(g)). */
+    eta = -(uint64_t)1;
+
+    for (i = 0; i < 12; ++i) {
+        eta = secp256k1_modinv64_divsteps_62_var(eta, f.v[0], g.v[0], t);
+        secp256k1_modinv64_update_de_62(&d, &e, t, modinfo);
+        secp256k1_modinv64_update_fg_62_var(len, &f, &g, t);
+
+        if (g.v[0] == 0) {
+            cond = 0;
+            for (j = 1; j < len; ++j) {
+                cond |= g.v[j];
+            }
+            if (cond == 0) {
+                break;
+            }
+        }
+
+        fn = f.v[len - 1];
+        gn = g.v[len - 1];
+
+        cond = ((int64_t)len - 2) >> 63;
+        cond |= fn ^ (fn >> 63);
+        cond |= gn ^ (gn >> 63);
+
+        if (cond == 0) {
+            f.v[len - 2] |= fn << 62;
+            g.v[len - 2] |= gn << 62;
+            --len;
+        }
+    }
+
+    VERIFY_CHECK(i < 12);
+
+    *sign = (f.v[0] >> 1) & 1;
+    *x = d;
+}
+
+#endif /* SECP256K1_MODINV64_IMPL_H */
