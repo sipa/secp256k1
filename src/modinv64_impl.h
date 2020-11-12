@@ -12,13 +12,46 @@
 
 #include "util.h"
 
-static void secp256k1_modinv64_signed62_verify(const secp256k1_modinv64_signed62* a) {
-    /* a must be in the range [-2^256, 2^256). */
+static void secp256k1_modinv64_signed62_verify(const secp256k1_modinv64_signed62 *a) {
     VERIFY_CHECK(a->v[0] >> 62 == 0);
     VERIFY_CHECK(a->v[1] >> 62 == 0);
     VERIFY_CHECK(a->v[2] >> 62 == 0);
     VERIFY_CHECK(a->v[3] >> 62 == 0);
-    VERIFY_CHECK(a->v[4] >> 8 == 0 || a->v[4] >> 8 == -(int64_t)1);
+    VERIFY_CHECK(a->v[4] >>  8 == 0);
+}
+
+static void secp256k1_modinv64_normalize_62(secp256k1_modinv64_signed62 *r, int64_t cond_negate, const secp256k1_modinv64_modinfo *modinfo) {
+    const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
+    int64_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4];
+    int64_t c, cond_add;
+
+    cond_add = r4 >> 63;
+
+    c  = r0 + (modinfo->modulus.v[0] & cond_add);
+    r0 = c & M62; c >>= 62;
+    c += r1 + (modinfo->modulus.v[1] & cond_add);
+    r1 = c & M62; c >>= 62;
+    c += r2 + (modinfo->modulus.v[2] & cond_add);
+    r2 = c & M62; c >>= 62;
+    c += r3 + (modinfo->modulus.v[3] & cond_add);
+    r3 = c & M62; c >>= 62;
+    c += r4 + (modinfo->modulus.v[4] & cond_add);
+    r4 = c;
+
+    cond_add = (c >> 63) ^ cond_negate;
+
+    c  = (r0 ^ cond_negate) - cond_negate + (modinfo->modulus.v[0] & cond_add);
+    r->v[0] = c & M62; c >>= 62;
+    c += (r1 ^ cond_negate) - cond_negate + (modinfo->modulus.v[1] & cond_add);
+    r->v[1] = c & M62; c >>= 62;
+    c += (r2 ^ cond_negate) - cond_negate + (modinfo->modulus.v[2] & cond_add);
+    r->v[2] = c & M62; c >>= 62;
+    c += (r3 ^ cond_negate) - cond_negate + (modinfo->modulus.v[3] & cond_add);
+    r->v[3] = c & M62; c >>= 62;
+    c += (r4 ^ cond_negate) - cond_negate + (modinfo->modulus.v[4] & cond_add);
+    r->v[4] = c;
+
+    VERIFY_CHECK(c >> 8 == 0);
 }
 
 static uint64_t secp256k1_modinv64_divsteps_62(uint64_t eta, uint64_t f0, uint64_t g0, int64_t *t) {
@@ -128,16 +161,32 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     const int64_t d0 = d->v[0], d1 = d->v[1], d2 = d->v[2], d3 = d->v[3], d4 = d->v[4];
     const int64_t e0 = e->v[0], e1 = e->v[1], e2 = e->v[2], e3 = e->v[3], e4 = e->v[4];
     const int64_t u = t[0], v = t[1], q = t[2], r = t[3];
-    int64_t md, me;
+    int64_t md, me, sd, se;
     int128_t cd, ce;
+
+    /*
+     * On input, d/e must be in the range (-2.P, P). For initially negative d (resp. e), we add
+     * u and/or v (resp. q and/or r) multiples of the modulus to the corresponding output (prior
+     * to division by 2^62). This has the same effect as if we added the modulus to the input(s).
+     */
+
+    sd = d4 >> 63;
+    se = e4 >> 63;
+
+    md = (u & sd) + (v & se);
+    me = (q & sd) + (r & se);
 
     cd = (int128_t)u * d0 + (int128_t)v * e0;
     ce = (int128_t)q * d0 + (int128_t)r * e0;
 
-    /* Calculate the multiples of P to add, to zero the 62 bottom bits. We choose md, me
-     * from the centred range [-2^61, 2^61) to keep d, e within [-2^256, 2^256). */
-    md = ((int64_t)(modinfo->montmul4 * (uint64_t)cd)) >> 2;
-    me = ((int64_t)(modinfo->montmul4 * (uint64_t)ce)) >> 2;
+    /*
+     * Subtract from md/me an extra term in the range [0, 2^62) such that the low 62 bits of each
+     * sum of products will be 0. This allows clean division by 2^62. On output, d/e are thus in
+     * the range (-2.P, P), consistent with the input constraint.
+     */
+
+    md -= (modinfo->modulus_inv62 * (int64_t)cd + md) & M62;
+    me -= (modinfo->modulus_inv62 * (int64_t)ce + me) & M62;
 
     if (modinfo->modulus.v[0]) {
         cd += (int128_t)modinfo->modulus.v[0] * md;
@@ -269,7 +318,7 @@ static void secp256k1_modinv64_update_fg_62_var(int len, secp256k1_modinv64_sign
     g->v[len - 1] = (int64_t)cg;
 }
 
-static void secp256k1_modinv64(int* sign, secp256k1_modinv64_signed62* x, const secp256k1_modinv64_modinfo* modinfo) {
+static void secp256k1_modinv64(secp256k1_modinv64_signed62 *x, const secp256k1_modinv64_modinfo *modinfo) {
     /* Modular inversion based on the paper "Fast constant-time gcd computation and
      * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
 
@@ -299,11 +348,12 @@ static void secp256k1_modinv64(int* sign, secp256k1_modinv64_signed62* x, const 
      * values i.e. +/- 1, and d now contains +/- the modular inverse. */
     VERIFY_CHECK((g.v[0] | g.v[1] | g.v[2] | g.v[3] | g.v[4]) == 0);
 
-    *sign = (f.v[0] >> 1) & 1;
+    secp256k1_modinv64_normalize_62(&d, f.v[4] >> 63, modinfo);
+
     *x = d;
 }
 
-static void secp256k1_modinv64_var(int* sign, secp256k1_modinv64_signed62 *x, const secp256k1_modinv64_modinfo* modinfo) {
+static void secp256k1_modinv64_var(secp256k1_modinv64_signed62 *x, const secp256k1_modinv64_modinfo *modinfo) {
     /* Modular inversion based on the paper "Fast constant-time gcd computation and
      * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
 
@@ -353,7 +403,8 @@ static void secp256k1_modinv64_var(int* sign, secp256k1_modinv64_signed62 *x, co
 
     VERIFY_CHECK(i < 12);
 
-    *sign = (f.v[0] >> 1) & 1;
+    secp256k1_modinv64_normalize_62(&d, f.v[len - 1] >> 63, modinfo);
+
     *x = d;
 }
 

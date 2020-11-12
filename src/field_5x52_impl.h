@@ -502,42 +502,25 @@ static SECP256K1_INLINE void secp256k1_fe_from_storage(secp256k1_fe *r, const se
 static void secp256k1_fe_from_signed62(secp256k1_fe *r, const secp256k1_modinv64_signed62 *a) {
     const uint64_t M52 = UINT64_MAX >> 12;
     const uint64_t a0 = a->v[0], a1 = a->v[1], a2 = a->v[2], a3 = a->v[3], a4 = a->v[4];
-    uint64_t r0, r1, r2, r3, r4, t;
 
     secp256k1_modinv64_signed62_verify(a);
 
-    t = (int64_t)a4 >> 8;
-
-    /* Add 2P if a4 is "negative". */
-    r0  = 0xFFFFDFFFFF85EULL & t;
-    r1  = 0xFFFFFFFFFFFFFULL & t;
-    r2  = 0xFFFFFFFFFFFFFULL & t;
-    r3  = 0xFFFFFFFFFFFFFULL & t;
-    r4  = 0x1FFFFFFFFFFFFULL & t;
-
-    r0 +=  a0                   & M52;
-    r1 += (a0 >> 52 | a1 << 10) & M52;
-    r2 += (a1 >> 42 | a2 << 20) & M52;
-    r3 += (a2 >> 32 | a3 << 30) & M52;
-    r4 += (a3 >> 22 | a4 << 40);
-
-    r->n[0] = r0;
-    r->n[1] = r1;
-    r->n[2] = r2;
-    r->n[3] = r3;
-    r->n[4] = r4;
+    r->n[0] =  a0                   & M52;
+    r->n[1] = (a0 >> 52 | a1 << 10) & M52;
+    r->n[2] = (a1 >> 42 | a2 << 20) & M52;
+    r->n[3] = (a2 >> 32 | a3 << 30) & M52;
+    r->n[4] = (a3 >> 22 | a4 << 40);
 
 #ifdef VERIFY
     r->magnitude = 1;
-    r->normalized = 0;
+    r->normalized = 1;
     secp256k1_fe_verify(r);
 #endif
 }
 
 static void secp256k1_fe_to_signed62(secp256k1_modinv64_signed62 *r, const secp256k1_fe *a) {
     const uint64_t M62 = UINT64_MAX >> 2;
-    const uint64_t *n = &a->n[0];
-    const uint64_t a0 = n[0], a1 = n[1], a2 = n[2], a3 = n[3], a4 = n[4];
+    const uint64_t a0 = a->n[0], a1 = a->n[1], a2 = a->n[2], a3 = a->n[3], a4 = a->n[4];
 
 #ifdef VERIFY
     VERIFY_CHECK(a->normalized);
@@ -552,11 +535,10 @@ static void secp256k1_fe_to_signed62(secp256k1_modinv64_signed62 *r, const secp2
 
 static const secp256k1_modinv64_modinfo secp256k1_const_modinfo_fe = {
     {{-0x1000003D1LL, 0, 0, 0, 256}},
-    0x1838091DD2253531LL * 4
+    0x27C7F6E22DDACACFLL
 };
 
 static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
-    int sign;
     secp256k1_fe tmp;
     secp256k1_modinv64_signed62 s;
 #ifdef VERIFY
@@ -569,11 +551,8 @@ static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
     zero_in = secp256k1_fe_normalizes_to_zero(&tmp);
 #endif
     secp256k1_fe_to_signed62(&s, &tmp);
-    secp256k1_modinv64(&sign, &s, &secp256k1_const_modinfo_fe);
+    secp256k1_modinv64(&s, &secp256k1_const_modinfo_fe);
     secp256k1_fe_from_signed62(r, &s);
-    secp256k1_fe_negate(&tmp, r, 1);
-    secp256k1_fe_cmov(r, &tmp, sign);
-    secp256k1_fe_normalize_weak(r);
 
 #ifdef VERIFY
     VERIFY_CHECK(secp256k1_fe_normalizes_to_zero(r) == zero_in);
@@ -581,7 +560,6 @@ static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
 }
 
 static void secp256k1_fe_inv_var(secp256k1_fe *r, const secp256k1_fe *x) {
-    int sign;
     secp256k1_fe tmp;
     secp256k1_modinv64_signed62 s;
 #ifdef VERIFY
@@ -594,12 +572,8 @@ static void secp256k1_fe_inv_var(secp256k1_fe *r, const secp256k1_fe *x) {
     zero_in = secp256k1_fe_normalizes_to_zero(&tmp);
 #endif
     secp256k1_fe_to_signed62(&s, &tmp);
-    secp256k1_modinv64_var(&sign, &s, &secp256k1_const_modinfo_fe);
+    secp256k1_modinv64_var(&s, &secp256k1_const_modinfo_fe);
     secp256k1_fe_from_signed62(r, &s);
-    if (sign) {
-        secp256k1_fe_negate(r, r, 1);
-        secp256k1_fe_normalize_weak(r);
-    }
 
 #ifdef VERIFY
     VERIFY_CHECK(secp256k1_fe_normalizes_to_zero(r) == zero_in);

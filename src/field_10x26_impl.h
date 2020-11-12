@@ -1169,58 +1169,31 @@ static void secp256k1_fe_from_signed30(secp256k1_fe *r, const secp256k1_modinv32
     const uint32_t M26 = UINT32_MAX >> 6;
     const uint32_t a0 = a->v[0], a1 = a->v[1], a2 = a->v[2], a3 = a->v[3], a4 = a->v[4],
                    a5 = a->v[5], a6 = a->v[6], a7 = a->v[7], a8 = a->v[8];
-    uint32_t r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, t;
-
-    t = (int32_t)a8 >> 16;
 
     secp256k1_modinv32_signed30_verify(a);
 
-    /* Add 2P if a8 is "negative". */
-    r0  = 0x3FFF85EUL & t;
-    r1  = 0x3FFFF7FUL & t;
-    r2  = 0x3FFFFFFUL & t;
-    r3  = 0x3FFFFFFUL & t;
-    r4  = 0x3FFFFFFUL & t;
-    r5  = 0x3FFFFFFUL & t;
-    r6  = 0x3FFFFFFUL & t;
-    r7  = 0x3FFFFFFUL & t;
-    r8  = 0x3FFFFFFUL & t;
-    r9  = 0x07FFFFFUL & t;
-
-    r0 +=  a0                   & M26;
-    r1 += (a0 >> 26 | a1 <<  4) & M26;
-    r2 += (a1 >> 22 | a2 <<  8) & M26;
-    r3 += (a2 >> 18 | a3 << 12) & M26;
-    r4 += (a3 >> 14 | a4 << 16) & M26;
-    r5 += (a4 >> 10 | a5 << 20) & M26;
-    r6 += (a5 >>  6 | a6 << 24) & M26;
-    r7 += (a6 >>  2           ) & M26;
-    r8 += (a6 >> 28 | a7 <<  2) & M26;
-    r9 += (a7 >> 24 | a8 <<  6);
-
-    r->n[0] = r0;
-    r->n[1] = r1;
-    r->n[2] = r2;
-    r->n[3] = r3;
-    r->n[4] = r4;
-    r->n[5] = r5;
-    r->n[6] = r6;
-    r->n[7] = r7;
-    r->n[8] = r8;
-    r->n[9] = r9;
+    r->n[0] =  a0                   & M26;
+    r->n[1] = (a0 >> 26 | a1 <<  4) & M26;
+    r->n[2] = (a1 >> 22 | a2 <<  8) & M26;
+    r->n[3] = (a2 >> 18 | a3 << 12) & M26;
+    r->n[4] = (a3 >> 14 | a4 << 16) & M26;
+    r->n[5] = (a4 >> 10 | a5 << 20) & M26;
+    r->n[6] = (a5 >>  6 | a6 << 24) & M26;
+    r->n[7] = (a6 >>  2           ) & M26;
+    r->n[8] = (a6 >> 28 | a7 <<  2) & M26;
+    r->n[9] = (a7 >> 24 | a8 <<  6);
 
 #ifdef VERIFY
     r->magnitude = 1;
-    r->normalized = 0;
+    r->normalized = 1;
     secp256k1_fe_verify(r);
 #endif
 }
 
 static void secp256k1_fe_to_signed30(secp256k1_modinv32_signed30 *r, const secp256k1_fe *a) {
     const uint32_t M30 = UINT32_MAX >> 2;
-    const uint32_t *n = &a->n[0];
-    const uint64_t a0 = n[0], a1 = n[1], a2 = n[2], a3 = n[3], a4 = n[4],
-                   a5 = n[5], a6 = n[6], a7 = n[7], a8 = n[8], a9 = n[9];
+    const uint64_t a0 = a->n[0], a1 = a->n[1], a2 = a->n[2], a3 = a->n[3], a4 = a->n[4],
+                   a5 = a->n[5], a6 = a->n[6], a7 = a->n[7], a8 = a->n[8], a9 = a->n[9];
 
 #ifdef VERIFY
     VERIFY_CHECK(a->normalized);
@@ -1240,11 +1213,10 @@ static void secp256k1_fe_to_signed30(secp256k1_modinv32_signed30 *r, const secp2
 
 static const secp256k1_modinv32_modinfo secp256k1_const_modinfo_fe = {
     {{-0x3D1, -4, 0, 0, 0, 0, 0, 0, 65536}},
-    0x12253531L * 4
+    0x2DDACACFL
 };
 
 static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
-    int sign;
     secp256k1_fe tmp;
     secp256k1_modinv32_signed30 s;
 #ifdef VERIFY
@@ -1257,11 +1229,8 @@ static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
     zero_in = secp256k1_fe_normalizes_to_zero(&tmp);
 #endif
     secp256k1_fe_to_signed30(&s, &tmp);
-    secp256k1_modinv32(&sign, &s, &secp256k1_const_modinfo_fe);
+    secp256k1_modinv32(&s, &secp256k1_const_modinfo_fe);
     secp256k1_fe_from_signed30(r, &s);
-    secp256k1_fe_negate(&tmp, r, 1);
-    secp256k1_fe_cmov(r, &tmp, sign);
-    secp256k1_fe_normalize_weak(r);
 
 #ifdef VERIFY
     VERIFY_CHECK(secp256k1_fe_normalizes_to_zero(r) == zero_in);
@@ -1269,7 +1238,6 @@ static void secp256k1_fe_inv(secp256k1_fe *r, const secp256k1_fe *x) {
 }
 
 static void secp256k1_fe_inv_var(secp256k1_fe *r, const secp256k1_fe *x) {
-    int sign;
     secp256k1_fe tmp;
     secp256k1_modinv32_signed30 s;
 #ifdef VERIFY
@@ -1282,12 +1250,8 @@ static void secp256k1_fe_inv_var(secp256k1_fe *r, const secp256k1_fe *x) {
     zero_in = secp256k1_fe_normalizes_to_zero(&tmp);
 #endif
     secp256k1_fe_to_signed30(&s, &tmp);
-    secp256k1_modinv32_var(&sign, &s, &secp256k1_const_modinfo_fe);
+    secp256k1_modinv32_var(&s, &secp256k1_const_modinfo_fe);
     secp256k1_fe_from_signed30(r, &s);
-    if (sign) {
-        secp256k1_fe_negate(r, r, 1);
-        secp256k1_fe_normalize_weak(r);
-    }
 
 #ifdef VERIFY
     VERIFY_CHECK(secp256k1_fe_normalizes_to_zero(r) == zero_in);

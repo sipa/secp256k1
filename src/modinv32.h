@@ -21,12 +21,12 @@ typedef struct {
     /* The modulus in signed30 notation. */
     secp256k1_modinv32_signed30 modulus;
 
-    /* (-modulus^{-1} mod 2^30) * 4 */
-    uint32_t montmul4;
+    /* modulus^{-1} mod 2^30 */
+    int32_t modulus_inv30;
 } secp256k1_modinv32_modinfo;
 
-static void secp256k1_modinv32_signed30_verify(const secp256k1_modinv32_signed30* a);
-static void secp256k1_modinv32(int* sign, secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo* modinfo);
-static void secp256k1_modinv32_var(int* sign, secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo* modinfo);
+static void secp256k1_modinv32_signed30_verify(const secp256k1_modinv32_signed30 *a);
+static void secp256k1_modinv32(secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo);
+static void secp256k1_modinv32_var(secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo);
 
 #endif /* SECP256K1_MODINV32_H */

@@ -11,8 +11,7 @@
 
 #include "util.h"
 
-static void secp256k1_modinv32_signed30_verify(const secp256k1_modinv32_signed30* a) {
-    /* a must be in the range [-2^256, 2^256). */
+static void secp256k1_modinv32_signed30_verify(const secp256k1_modinv32_signed30 *a) {
     VERIFY_CHECK(a->v[0] >> 30 == 0);
     VERIFY_CHECK(a->v[1] >> 30 == 0);
     VERIFY_CHECK(a->v[2] >> 30 == 0);
@@ -21,7 +20,58 @@ static void secp256k1_modinv32_signed30_verify(const secp256k1_modinv32_signed30
     VERIFY_CHECK(a->v[5] >> 30 == 0);
     VERIFY_CHECK(a->v[6] >> 30 == 0);
     VERIFY_CHECK(a->v[7] >> 30 == 0);
-    VERIFY_CHECK(a->v[8] >> 16 == 0 || a->v[8] >> 16 == -(int32_t)1);
+    VERIFY_CHECK(a->v[8] >> 16 == 0);
+}
+
+static void secp256k1_modinv32_normalize_30(secp256k1_modinv32_signed30 *r, int32_t cond_negate, const secp256k1_modinv32_modinfo *modinfo) {
+    const int32_t M30 = (int32_t)(UINT32_MAX >> 2);
+    int32_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4],
+            r5 = r->v[5], r6 = r->v[6], r7 = r->v[7], r8 = r->v[8];
+    int32_t c, cond_add;
+
+    cond_add = r8 >> 31;
+
+    c  = r0 + (modinfo->modulus.v[0] & cond_add);
+    r0 = c & M30; c >>= 30;
+    c += r1 + (modinfo->modulus.v[1] & cond_add);
+    r1 = c & M30; c >>= 30;
+    c += r2 + (modinfo->modulus.v[2] & cond_add);
+    r2 = c & M30; c >>= 30;
+    c += r3 + (modinfo->modulus.v[3] & cond_add);
+    r3 = c & M30; c >>= 30;
+    c += r4 + (modinfo->modulus.v[4] & cond_add);
+    r4 = c & M30; c >>= 30;
+    c += r5 + (modinfo->modulus.v[5] & cond_add);
+    r5 = c & M30; c >>= 30;
+    c += r6 + (modinfo->modulus.v[6] & cond_add);
+    r6 = c & M30; c >>= 30;
+    c += r7 + (modinfo->modulus.v[7] & cond_add);
+    r7 = c & M30; c >>= 30;
+    c += r8 + (modinfo->modulus.v[8] & cond_add);
+    r8 = c;
+
+    cond_add = (c >> 31) ^ cond_negate;
+
+    c  = (r0 ^ cond_negate) - cond_negate + (modinfo->modulus.v[0] & cond_add);
+    r->v[0] = c & M30; c >>= 30;
+    c += (r1 ^ cond_negate) - cond_negate + (modinfo->modulus.v[1] & cond_add);
+    r->v[1] = c & M30; c >>= 30;
+    c += (r2 ^ cond_negate) - cond_negate + (modinfo->modulus.v[2] & cond_add);
+    r->v[2] = c & M30; c >>= 30;
+    c += (r3 ^ cond_negate) - cond_negate + (modinfo->modulus.v[3] & cond_add);
+    r->v[3] = c & M30; c >>= 30;
+    c += (r4 ^ cond_negate) - cond_negate + (modinfo->modulus.v[4] & cond_add);
+    r->v[4] = c & M30; c >>= 30;
+    c += (r5 ^ cond_negate) - cond_negate + (modinfo->modulus.v[5] & cond_add);
+    r->v[5] = c & M30; c >>= 30;
+    c += (r6 ^ cond_negate) - cond_negate + (modinfo->modulus.v[6] & cond_add);
+    r->v[6] = c & M30; c >>= 30;
+    c += (r7 ^ cond_negate) - cond_negate + (modinfo->modulus.v[7] & cond_add);
+    r->v[7] = c & M30; c >>= 30;
+    c += (r8 ^ cond_negate) - cond_negate + (modinfo->modulus.v[8] & cond_add);
+    r->v[8] = c;
+
+    VERIFY_CHECK(c >> 16 == 0);
 }
 
 static uint32_t secp256k1_modinv32_divsteps_30(uint32_t eta, uint32_t f0, uint32_t g0, int32_t *t) {
@@ -134,9 +184,22 @@ static uint32_t secp256k1_modinv32_divsteps_30_var(uint32_t eta, uint32_t f0, ui
 
 static void secp256k1_modinv32_update_de_30(secp256k1_modinv32_signed30 *d, secp256k1_modinv32_signed30 *e, const int32_t *t, const secp256k1_modinv32_modinfo* modinfo) {
     const int32_t M30 = (int32_t)(UINT32_MAX >> 2);
-    int32_t u = t[0], v = t[1], q = t[2], r = t[3], di, ei, md, me;
+    const int32_t u = t[0], v = t[1], q = t[2], r = t[3];
+    int32_t di, ei, md, me, sd, se;
     int64_t cd, ce;
     int i;
+
+    /*
+     * On input, d/e must be in the range (-2.P, P). For initially negative d (resp. e), we add
+     * u and/or v (resp. q and/or r) multiples of the modulus to the corresponding output (prior
+     * to division by 2^30). This has the same effect as if we added the modulus to the input(s).
+     */
+
+    sd = d->v[8] >> 31;
+    se = e->v[8] >> 31;
+
+    md = (u & sd) + (v & se);
+    me = (q & sd) + (r & se);
 
     di = d->v[0];
     ei = e->v[0];
@@ -144,10 +207,14 @@ static void secp256k1_modinv32_update_de_30(secp256k1_modinv32_signed30 *d, secp
     cd = (int64_t)u * di + (int64_t)v * ei;
     ce = (int64_t)q * di + (int64_t)r * ei;
 
-    /* Calculate the multiples of P to add, to zero the 30 bottom bits. We choose md, me
-     * from the centred range [-2^29, 2^29) to keep d, e within [-2^256, 2^256). */
-    md = ((int32_t)(modinfo->montmul4 * (uint32_t)cd)) >> 2;
-    me = ((int32_t)(modinfo->montmul4 * (uint32_t)ce)) >> 2;
+    /*
+     * Subtract from md/me an extra term in the range [0, 2^30) such that the low 30 bits of each
+     * sum of products will be 0. This allows clean division by 2^30. On output, d/e are thus in
+     * the range (-2.P, P), consistent with the input constraint.
+     */
+
+    md -= (modinfo->modulus_inv30 * (int32_t)cd + md) & M30;
+    me -= (modinfo->modulus_inv30 * (int32_t)ce + me) & M30;
 
     if (modinfo->modulus.v[0]) {
         cd += (int64_t)modinfo->modulus.v[0] * md;
@@ -243,7 +310,7 @@ static void secp256k1_modinv32_update_fg_30_var(int len, secp256k1_modinv32_sign
     g->v[len - 1] = (int32_t)cg;
 }
 
-static void secp256k1_modinv32(int* sign, secp256k1_modinv32_signed30* x, const secp256k1_modinv32_modinfo* modinfo) {
+static void secp256k1_modinv32(secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo) {
     /* Modular inversion based on the paper "Fast constant-time gcd computation and
      * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
     int32_t t[4];
@@ -272,11 +339,12 @@ static void secp256k1_modinv32(int* sign, secp256k1_modinv32_signed30* x, const 
      * values i.e. +/- 1, and d now contains +/- the modular inverse. */
     VERIFY_CHECK((g.v[0] | g.v[1] | g.v[2] | g.v[3] | g.v[4] | g.v[5] | g.v[6] | g.v[7] | g.v[8]) == 0);
 
-    *sign = (f.v[0] >> 1) & 1;
+    secp256k1_modinv32_normalize_30(&d, f.v[8] >> 31, modinfo);
+
     *x = d;
 }
 
-static void secp256k1_modinv32_var(int* sign, secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo* modinfo) {
+static void secp256k1_modinv32_var(secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo) {
     /* Modular inversion based on the paper "Fast constant-time gcd computation and
      * modular inversion" by Daniel J. Bernstein and Bo-Yin Yang. */
     int32_t t[4];
@@ -328,7 +396,8 @@ static void secp256k1_modinv32_var(int* sign, secp256k1_modinv32_signed30 *x, co
 
     VERIFY_CHECK(i < 25);
 
-    *sign = (f.v[0] >> 1) & 1;
+    secp256k1_modinv32_normalize_30(&d, f.v[len - 1] >> 31, modinfo);
+
     *x = d;
 }
 
