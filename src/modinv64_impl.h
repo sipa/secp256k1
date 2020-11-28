@@ -195,6 +195,7 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     md -= (modinfo->modulus_inv62 * (uint64_t)cd + md) & M62;
     me -= (modinfo->modulus_inv62 * (uint64_t)ce + me) & M62;
 
+    /* The modulus has to be odd, so we can assume it is nonzero. */
     cd += (int128_t)modinfo->modulus.v[0] * md;
     ce += (int128_t)modinfo->modulus.v[0] * me;
 
@@ -204,8 +205,11 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     cd += (int128_t)u * d1 + (int128_t)v * e1;
     ce += (int128_t)q * d1 + (int128_t)r * e1;
 
-    cd += (int128_t)modinfo->modulus.v[1] * md;
-    ce += (int128_t)modinfo->modulus.v[1] * me;
+    /* Limb 1 of the modulus may be zero (optimization). */
+    if (modinfo->modulus.v[1]) {
+        cd += (int128_t)modinfo->modulus.v[1] * md;
+        ce += (int128_t)modinfo->modulus.v[1] * me;
+    }
 
     d->v[0] = (int64_t)cd & M62; cd >>= 62;
     e->v[0] = (int64_t)ce & M62; ce >>= 62;
@@ -213,8 +217,11 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     cd += (int128_t)u * d2 + (int128_t)v * e2;
     ce += (int128_t)q * d2 + (int128_t)r * e2;
 
-    cd += (int128_t)modinfo->modulus.v[2] * md;
-    ce += (int128_t)modinfo->modulus.v[2] * me;
+    /* Limb 2 of the modulus may be zero (optimization). */
+    if (modinfo->modulus.v[2]) {
+        cd += (int128_t)modinfo->modulus.v[2] * md;
+        ce += (int128_t)modinfo->modulus.v[2] * me;
+    }
 
     d->v[1] = (int64_t)cd & M62; cd >>= 62;
     e->v[1] = (int64_t)ce & M62; ce >>= 62;
@@ -222,8 +229,11 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     cd += (int128_t)u * d3 + (int128_t)v * e3;
     ce += (int128_t)q * d3 + (int128_t)r * e3;
 
-    cd += (int128_t)modinfo->modulus.v[3] * md;
-    ce += (int128_t)modinfo->modulus.v[3] * me;
+    /* Limb 3 of the modulus may be zero (optimization). */
+    if (modinfo->modulus.v[3]) {
+        cd += (int128_t)modinfo->modulus.v[3] * md;
+        ce += (int128_t)modinfo->modulus.v[3] * me;
+    }
 
     d->v[2] = (int64_t)cd & M62; cd >>= 62;
     e->v[2] = (int64_t)ce & M62; ce >>= 62;
@@ -231,6 +241,7 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
     cd += (int128_t)u * d4 + (int128_t)v * e4;
     ce += (int128_t)q * d4 + (int128_t)r * e4;
 
+    /* As this is for 256-bit operations, assume the top limb is nonzero. */
     cd += (int128_t)modinfo->modulus.v[4] * md;
     ce += (int128_t)modinfo->modulus.v[4] * me;
 
