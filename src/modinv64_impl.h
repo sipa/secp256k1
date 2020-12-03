@@ -15,33 +15,100 @@
 static void secp256k1_modinv64_normalize_62(secp256k1_modinv64_signed62 *r, int64_t cond_negate, const secp256k1_modinv64_modinfo *modinfo) {
     const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
     int64_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4];
-    int64_t c, cond_add;
+    int64_t cond_add;
 
     cond_add = r4 >> 63;
 
-    c  = r0 + (modinfo->modulus.v[0] & cond_add);
-    r0 = c & M62; c >>= 62;
-    c += r1 + (modinfo->modulus.v[1] & cond_add);
-    r1 = c & M62; c >>= 62;
-    c += r2 + (modinfo->modulus.v[2] & cond_add);
-    r2 = c & M62; c >>= 62;
-    c += r3 + (modinfo->modulus.v[3] & cond_add);
-    r3 = c & M62; c >>= 62;
-    c += r4 + (modinfo->modulus.v[4] & cond_add);
-    r4 = c;
+    r0 += modinfo->modulus.v[0] & cond_add;
+    r1 += modinfo->modulus.v[1] & cond_add;
+    r2 += modinfo->modulus.v[2] & cond_add;
+    r3 += modinfo->modulus.v[3] & cond_add;
+    r4 += modinfo->modulus.v[4] & cond_add;
 
-    cond_add = (c >> 63) ^ cond_negate;
+    r0 = (r0 ^ cond_negate) - cond_negate;
+    r1 = (r1 ^ cond_negate) - cond_negate;
+    r2 = (r2 ^ cond_negate) - cond_negate;
+    r3 = (r3 ^ cond_negate) - cond_negate;
+    r4 = (r4 ^ cond_negate) - cond_negate;
 
-    c  = (r0 ^ cond_negate) - cond_negate + (modinfo->modulus.v[0] & cond_add);
-    r->v[0] = c & M62; c >>= 62;
-    c += (r1 ^ cond_negate) - cond_negate + (modinfo->modulus.v[1] & cond_add);
-    r->v[1] = c & M62; c >>= 62;
-    c += (r2 ^ cond_negate) - cond_negate + (modinfo->modulus.v[2] & cond_add);
-    r->v[2] = c & M62; c >>= 62;
-    c += (r3 ^ cond_negate) - cond_negate + (modinfo->modulus.v[3] & cond_add);
-    r->v[3] = c & M62; c >>= 62;
-    c += (r4 ^ cond_negate) - cond_negate + (modinfo->modulus.v[4] & cond_add);
-    r->v[4] = c;
+    r1 += r0 >> 62; r0 &= M62;
+    r2 += r1 >> 62; r1 &= M62;
+    r3 += r2 >> 62; r2 &= M62;
+    r4 += r3 >> 62; r3 &= M62;
+
+    cond_add = r4 >> 63;
+
+    r0 += modinfo->modulus.v[0] & cond_add;
+    r1 += modinfo->modulus.v[1] & cond_add;
+    r2 += modinfo->modulus.v[2] & cond_add;
+    r3 += modinfo->modulus.v[3] & cond_add;
+    r4 += modinfo->modulus.v[4] & cond_add;
+
+    r1 += r0 >> 62; r0 &= M62;
+    r2 += r1 >> 62; r1 &= M62;
+    r3 += r2 >> 62; r2 &= M62;
+    r4 += r3 >> 62; r3 &= M62;
+
+    r->v[0] = r0;
+    r->v[1] = r1;
+    r->v[2] = r2;
+    r->v[3] = r3;
+    r->v[4] = r4;
+
+#ifdef VERIFY
+    VERIFY_CHECK(r->v[0] >> 62 == 0);
+    VERIFY_CHECK(r->v[1] >> 62 == 0);
+    VERIFY_CHECK(r->v[2] >> 62 == 0);
+    VERIFY_CHECK(r->v[3] >> 62 == 0);
+    VERIFY_CHECK(r->v[4] >>  8 == 0);
+#endif
+}
+
+static void secp256k1_modinv64_normalize_62_var(secp256k1_modinv64_signed62 *r, int64_t cond_negate, const secp256k1_modinv64_modinfo *modinfo) {
+    const int64_t M62 = (int64_t)(UINT64_MAX >> 2);
+    int64_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4];
+
+    if ((r4 < 0) | cond_negate) {
+        if (r4 < 0) {
+            r0 += modinfo->modulus.v[0];
+            r1 += modinfo->modulus.v[1];
+            r2 += modinfo->modulus.v[2];
+            r3 += modinfo->modulus.v[3];
+            r4 += modinfo->modulus.v[4];
+        }
+
+        if (cond_negate) {
+            r0 = -r0;
+            r1 = -r1;
+            r2 = -r2;
+            r3 = -r3;
+            r4 = -r4;
+        }
+
+        r1 += r0 >> 62; r0 &= M62;
+        r2 += r1 >> 62; r1 &= M62;
+        r3 += r2 >> 62; r2 &= M62;
+        r4 += r3 >> 62; r3 &= M62;
+
+        if (r4 < 0) {
+            r0 += modinfo->modulus.v[0];
+            r1 += modinfo->modulus.v[1];
+            r2 += modinfo->modulus.v[2];
+            r3 += modinfo->modulus.v[3];
+            r4 += modinfo->modulus.v[4];
+
+            r1 += r0 >> 62; r0 &= M62;
+            r2 += r1 >> 62; r1 &= M62;
+            r3 += r2 >> 62; r2 &= M62;
+            r4 += r3 >> 62; r3 &= M62;
+        }
+
+        r->v[0] = r0;
+        r->v[1] = r1;
+        r->v[2] = r2;
+        r->v[3] = r3;
+        r->v[4] = r4;
+    }
 
 #ifdef VERIFY
     VERIFY_CHECK(r->v[0] >> 62 == 0);
@@ -411,7 +478,7 @@ static void secp256k1_modinv64_var(secp256k1_modinv64_signed62 *x, const secp256
 
     VERIFY_CHECK(i < 12);
 
-    secp256k1_modinv64_normalize_62(&d, f.v[len - 1] >> 63, modinfo);
+    secp256k1_modinv64_normalize_62_var(&d, f.v[len - 1] >> 63, modinfo);
 
     *x = d;
 }

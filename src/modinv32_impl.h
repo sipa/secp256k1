@@ -15,49 +15,153 @@ static void secp256k1_modinv32_normalize_30(secp256k1_modinv32_signed30 *r, int3
     const int32_t M30 = (int32_t)(UINT32_MAX >> 2);
     int32_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4],
             r5 = r->v[5], r6 = r->v[6], r7 = r->v[7], r8 = r->v[8];
-    int32_t c, cond_add;
+    int32_t cond_add;
 
     cond_add = r8 >> 31;
 
-    c  = r0 + (modinfo->modulus.v[0] & cond_add);
-    r0 = c & M30; c >>= 30;
-    c += r1 + (modinfo->modulus.v[1] & cond_add);
-    r1 = c & M30; c >>= 30;
-    c += r2 + (modinfo->modulus.v[2] & cond_add);
-    r2 = c & M30; c >>= 30;
-    c += r3 + (modinfo->modulus.v[3] & cond_add);
-    r3 = c & M30; c >>= 30;
-    c += r4 + (modinfo->modulus.v[4] & cond_add);
-    r4 = c & M30; c >>= 30;
-    c += r5 + (modinfo->modulus.v[5] & cond_add);
-    r5 = c & M30; c >>= 30;
-    c += r6 + (modinfo->modulus.v[6] & cond_add);
-    r6 = c & M30; c >>= 30;
-    c += r7 + (modinfo->modulus.v[7] & cond_add);
-    r7 = c & M30; c >>= 30;
-    c += r8 + (modinfo->modulus.v[8] & cond_add);
-    r8 = c;
+    r0 += modinfo->modulus.v[0] & cond_add;
+    r1 += modinfo->modulus.v[1] & cond_add;
+    r2 += modinfo->modulus.v[2] & cond_add;
+    r3 += modinfo->modulus.v[3] & cond_add;
+    r4 += modinfo->modulus.v[4] & cond_add;
+    r5 += modinfo->modulus.v[5] & cond_add;
+    r6 += modinfo->modulus.v[6] & cond_add;
+    r7 += modinfo->modulus.v[7] & cond_add;
+    r8 += modinfo->modulus.v[8] & cond_add;
 
-    cond_add = (c >> 31) ^ cond_negate;
+    r0 = (r0 ^ cond_negate) - cond_negate;
+    r1 = (r1 ^ cond_negate) - cond_negate;
+    r2 = (r2 ^ cond_negate) - cond_negate;
+    r3 = (r3 ^ cond_negate) - cond_negate;
+    r4 = (r4 ^ cond_negate) - cond_negate;
+    r5 = (r5 ^ cond_negate) - cond_negate;
+    r6 = (r6 ^ cond_negate) - cond_negate;
+    r7 = (r7 ^ cond_negate) - cond_negate;
+    r8 = (r8 ^ cond_negate) - cond_negate;
 
-    c  = (r0 ^ cond_negate) - cond_negate + (modinfo->modulus.v[0] & cond_add);
-    r->v[0] = c & M30; c >>= 30;
-    c += (r1 ^ cond_negate) - cond_negate + (modinfo->modulus.v[1] & cond_add);
-    r->v[1] = c & M30; c >>= 30;
-    c += (r2 ^ cond_negate) - cond_negate + (modinfo->modulus.v[2] & cond_add);
-    r->v[2] = c & M30; c >>= 30;
-    c += (r3 ^ cond_negate) - cond_negate + (modinfo->modulus.v[3] & cond_add);
-    r->v[3] = c & M30; c >>= 30;
-    c += (r4 ^ cond_negate) - cond_negate + (modinfo->modulus.v[4] & cond_add);
-    r->v[4] = c & M30; c >>= 30;
-    c += (r5 ^ cond_negate) - cond_negate + (modinfo->modulus.v[5] & cond_add);
-    r->v[5] = c & M30; c >>= 30;
-    c += (r6 ^ cond_negate) - cond_negate + (modinfo->modulus.v[6] & cond_add);
-    r->v[6] = c & M30; c >>= 30;
-    c += (r7 ^ cond_negate) - cond_negate + (modinfo->modulus.v[7] & cond_add);
-    r->v[7] = c & M30; c >>= 30;
-    c += (r8 ^ cond_negate) - cond_negate + (modinfo->modulus.v[8] & cond_add);
-    r->v[8] = c;
+    r1 += r0 >> 30; r0 &= M30;
+    r2 += r1 >> 30; r1 &= M30;
+    r3 += r2 >> 30; r2 &= M30;
+    r4 += r3 >> 30; r3 &= M30;
+    r5 += r4 >> 30; r4 &= M30;
+    r6 += r5 >> 30; r5 &= M30;
+    r7 += r6 >> 30; r6 &= M30;
+    r8 += r7 >> 30; r7 &= M30;
+
+    cond_add = r8 >> 31;
+
+    r0 += modinfo->modulus.v[0] & cond_add;
+    r1 += modinfo->modulus.v[1] & cond_add;
+    r2 += modinfo->modulus.v[2] & cond_add;
+    r3 += modinfo->modulus.v[3] & cond_add;
+    r4 += modinfo->modulus.v[4] & cond_add;
+    r5 += modinfo->modulus.v[5] & cond_add;
+    r6 += modinfo->modulus.v[6] & cond_add;
+    r7 += modinfo->modulus.v[7] & cond_add;
+    r8 += modinfo->modulus.v[8] & cond_add;
+
+    r1 += r0 >> 30; r0 &= M30;
+    r2 += r1 >> 30; r1 &= M30;
+    r3 += r2 >> 30; r2 &= M30;
+    r4 += r3 >> 30; r3 &= M30;
+    r5 += r4 >> 30; r4 &= M30;
+    r6 += r5 >> 30; r5 &= M30;
+    r7 += r6 >> 30; r6 &= M30;
+    r8 += r7 >> 30; r7 &= M30;
+
+    r->v[0] = r0;
+    r->v[1] = r1;
+    r->v[2] = r2;
+    r->v[3] = r3;
+    r->v[4] = r4;
+    r->v[5] = r5;
+    r->v[6] = r6;
+    r->v[7] = r7;
+    r->v[8] = r8;
+
+#ifdef VERIFY
+    VERIFY_CHECK(r->v[0] >> 30 == 0);
+    VERIFY_CHECK(r->v[1] >> 30 == 0);
+    VERIFY_CHECK(r->v[2] >> 30 == 0);
+    VERIFY_CHECK(r->v[3] >> 30 == 0);
+    VERIFY_CHECK(r->v[4] >> 30 == 0);
+    VERIFY_CHECK(r->v[5] >> 30 == 0);
+    VERIFY_CHECK(r->v[6] >> 30 == 0);
+    VERIFY_CHECK(r->v[7] >> 30 == 0);
+    VERIFY_CHECK(r->v[8] >> 16 == 0);
+#endif
+}
+
+static void secp256k1_modinv32_normalize_30_var(secp256k1_modinv32_signed30 *r, int32_t cond_negate, const secp256k1_modinv32_modinfo *modinfo) {
+    const int32_t M30 = (int32_t)(UINT32_MAX >> 2);
+    int32_t r0 = r->v[0], r1 = r->v[1], r2 = r->v[2], r3 = r->v[3], r4 = r->v[4],
+            r5 = r->v[5], r6 = r->v[6], r7 = r->v[7], r8 = r->v[8];
+
+    if ((r8 < 0) | cond_negate) {
+        if (r8 < 0) {
+            r0 += modinfo->modulus.v[0];
+            r1 += modinfo->modulus.v[1];
+            r2 += modinfo->modulus.v[2];
+            r3 += modinfo->modulus.v[3];
+            r4 += modinfo->modulus.v[4];
+            r5 += modinfo->modulus.v[5];
+            r6 += modinfo->modulus.v[6];
+            r7 += modinfo->modulus.v[7];
+            r8 += modinfo->modulus.v[8];
+        }
+
+        if (cond_negate) {
+            r0 = -r0;
+            r1 = -r1;
+            r2 = -r2;
+            r3 = -r3;
+            r4 = -r4;
+            r5 = -r5;
+            r6 = -r6;
+            r7 = -r7;
+            r8 = -r8;
+        }
+
+        r1 += r0 >> 30; r0 &= M30;
+        r2 += r1 >> 30; r1 &= M30;
+        r3 += r2 >> 30; r2 &= M30;
+        r4 += r3 >> 30; r3 &= M30;
+        r5 += r4 >> 30; r4 &= M30;
+        r6 += r5 >> 30; r5 &= M30;
+        r7 += r6 >> 30; r6 &= M30;
+        r8 += r7 >> 30; r7 &= M30;
+
+        if (r8 < 0) {
+            r0 += modinfo->modulus.v[0];
+            r1 += modinfo->modulus.v[1];
+            r2 += modinfo->modulus.v[2];
+            r3 += modinfo->modulus.v[3];
+            r4 += modinfo->modulus.v[4];
+            r5 += modinfo->modulus.v[5];
+            r6 += modinfo->modulus.v[6];
+            r7 += modinfo->modulus.v[7];
+            r8 += modinfo->modulus.v[8];
+
+            r1 += r0 >> 30; r0 &= M30;
+            r2 += r1 >> 30; r1 &= M30;
+            r3 += r2 >> 30; r2 &= M30;
+            r4 += r3 >> 30; r3 &= M30;
+            r5 += r4 >> 30; r4 &= M30;
+            r6 += r5 >> 30; r5 &= M30;
+            r7 += r6 >> 30; r6 &= M30;
+            r8 += r7 >> 30; r7 &= M30;
+        }
+
+        r->v[0] = r0;
+        r->v[1] = r1;
+        r->v[2] = r2;
+        r->v[3] = r3;
+        r->v[4] = r4;
+        r->v[5] = r5;
+        r->v[6] = r6;
+        r->v[7] = r7;
+        r->v[8] = r8;
+    }
 
 #ifdef VERIFY
     VERIFY_CHECK(r->v[0] >> 30 == 0);
@@ -400,7 +504,7 @@ static void secp256k1_modinv32_var(secp256k1_modinv32_signed30 *x, const secp256
 
     VERIFY_CHECK(i < 25);
 
-    secp256k1_modinv32_normalize_30(&d, f.v[len - 1] >> 31, modinfo);
+    secp256k1_modinv32_normalize_30_var(&d, f.v[len - 1] >> 31, modinfo);
 
     *x = d;
 }
