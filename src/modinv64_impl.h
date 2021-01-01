@@ -148,7 +148,7 @@ typedef struct {
     int64_t u, v, q, r;
 } secp256k1_modinv64_trans2x2;
 
-/* Compute the transition matrix and eta for 62 divsteps.
+/* Compute the transition matrix and eta for 62 divsteps (using eta=-(delta+1/2) representation).
  *
  * Input:  eta: initial eta
  *         f0:  bottom limb of initial f
@@ -180,8 +180,8 @@ static int64_t secp256k1_modinv64_divsteps_62(int64_t eta, uint64_t f0, uint64_t
         r += z & c2;
         /* In what follows, c1 is a condition mask for (eta < 0) and (g & 1). */
         c1 &= c2;
-        /* Conditionally negate eta, and unconditionally subtract 1. */
-        eta = (eta ^ c1) - (c1 + 1);
+        /* Conditionally change eta into -eta-2 or eta-1. */
+        eta = (eta ^ c1) - 1;
         /* Conditionally add g,q,r to f,u,v. */
         f += g & c1;
         u += q & c1;
@@ -206,7 +206,7 @@ static int64_t secp256k1_modinv64_divsteps_62(int64_t eta, uint64_t f0, uint64_t
     return eta;
 }
 
-/* Compute the transition matrix and eta for 62 divsteps (variable time).
+/* Compute the transition matrix and eta for 62 divsteps (variable time, using eta=-delta representation).
  *
  * Input:  eta: initial eta
  *         f0:  bottom limb of initial f
@@ -457,10 +457,10 @@ static void secp256k1_modinv64(secp256k1_modinv64_signed62 *x, const secp256k1_m
     secp256k1_modinv64_signed62 f = modinfo->modulus;
     secp256k1_modinv64_signed62 g = *x;
     int i;
-    int64_t eta = -1;
+    int64_t eta = -1; /* use the variant where eta = -(delta+1/2); delta starts at 1/2. */
 
-    /* Do 12 iterations of 62 divsteps each = 744 divsteps. 724 suffices for 256-bit inputs. */
-    for (i = 0; i < 12; ++i) {
+    /* Do 10 iterations of 62 divsteps each = 620 divsteps. 590 suffices for 256-bit inputs. */
+    for (i = 0; i < 10; ++i) {
         /* Compute transition matrix and new eta after 62 divsteps. */
         secp256k1_modinv64_trans2x2 t;
         eta = secp256k1_modinv64_divsteps_62(eta, f.v[0], g.v[0], &t);
@@ -510,7 +510,7 @@ static void secp256k1_modinv64_var(secp256k1_modinv64_signed62 *x, const secp256
     secp256k1_modinv64_signed62 f = modinfo->modulus;
     secp256k1_modinv64_signed62 g = *x;
     int i, j, len = 5;
-    int64_t eta = -1;
+    int64_t eta = -1; /* eta = -delta; delta is initially 1 (faster for the variable-time code) */
     int64_t cond, fn, gn;
 
     /* Do up to 12 iterations of 62 divsteps each, or until g=0 (whichever comes first). */

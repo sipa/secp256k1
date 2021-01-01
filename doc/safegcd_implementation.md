@@ -244,8 +244,8 @@ def modinv(M, Mi, x):
 
 This means that in practice we'll always perform a multiple of *N* divsteps. This is not a problem
 because once *g=0*, further divsteps do not affect *f*, *g*, *d*, or *e* anymore (only *&delta;* keeps
-increasing). For variable time code such excess iterations will be mostly optimized away in
-section 6.
+increasing). For variable time code such excess iterations will be mostly optimized away in later
+sections.
 
 
 ## 4. Avoiding modulus operations
@@ -519,6 +519,20 @@ computation:
     g >>= 1
 ```
 
+A variant of divsteps with better worst-case performance can be used instead: starting *&delta;* at
+*1/2* instead of *1*. This reduces the worst case number of iterations to *590* for *256*-bit inputs
+(which can be shown using convex hull analysis). In this case, the substitution *&eta;=-(&delta;+1/2)*
+is used instead to keep the variable integral. Incrementing *&delta;* by *1* still translates to
+decrementing *&eta;* by *1*, but negating *&delta;* now corresponds to going from *&eta;* to *-(&eta;+1)*, or
+*~&eta;*. Doing that conditionally based on *c3* is simply:
+
+```python
+    ...
+    c3 = c1 & c2
+    eta ^= c3
+    ...
+```
+
 By replacing the loop in `divsteps_n_matrix` with a variant of the divstep code above (extended to
 also apply all *f* operations to *u*, *v* and all *g* operations to *q*, *r*), a constant-time version of
 `divsteps_n_matrix` is obtained. The full code will be in section 7.
@@ -535,7 +549,9 @@ other cases, it slows down calculations unnecessarily. In this section, we will 
 faster non-constant time `divsteps_n_matrix` function.
 
 To do so, first consider yet another way of writing the inner loop of divstep operations in
-`gcd` from section 1. This decomposition is also explained in the paper in section 8.2.
+`gcd` from section 1. This decomposition is also explained in the paper in section 8.2. We use
+the original version (initial *&delta;=1*) here, but still choose a different representation:
+*&eta; = -&delta;*. This permits more shared logic with the constant-time code.
 
 ```python
 for _ in range(N):
@@ -652,7 +668,7 @@ def divsteps_n_matrix(eta, f, g):
         # Conditionally add x, y, z to g, q, r.
         g, q, r = g + (x & c2), q + (y & c2), r + (z & c2)
         c1 &= c2                     # reusing c1 here for the earlier c3 variable
-        eta = (eta ^ c1) - (c1 + 1)  # inlining the unconditional eta decrement here
+        eta = (eta ^ c1) - 1         # inlining the unconditional eta decrement here
         # Conditionally add g, q, r to f, u, v.
         f, u, v = f + (g & c1), u + (q & c1), v + (r & c1)
         # When shifting g down, don't shift q, r, as we construct a transition matrix multiplied
