@@ -240,8 +240,8 @@
  *
  * This means that in practice we'll always perform a multiple of N divsteps. This is not a problem
  * because once g=0, further divsteps do not affect f, g, d, or e anymore (only delta keeps
- * increasing). For variable time code such excess iterations will be mostly optimized away in
- * section 6.
+ * increasing). For variable time code such excess iterations will be mostly optimized away in later
+ * sections.
  *
  *
  * 4. Avoiding modulus operations
@@ -461,7 +461,7 @@
  *     # Compute a mask c2 for odd g, and conditionally add x to g:
  *     c2 = -(g & 1)
  *     g += x & c2
- *     # Compute a mask c for (eta < 0) and odd (input) g, and use it to conditionally negate eta,
+ *     # Compute a mask c3 for (eta < 0) and odd (input) g, and use it to conditionally negate eta,
  *     # and add g to f:
  *     c3 = c1 & c2
  *     eta = (eta ^ c3) - c3
@@ -469,6 +469,18 @@
  *     # Incrementing delta corresponds to decrementing eta.
  *     eta -= 1
  *     g >>= 1
+ *
+ * A variant of divsteps with better worst-case performance can be used instead: starting delta at
+ * 1/2 instead of 1. This reduces the worst case number of iterations to 590 for 256-bit inputs
+ * (which can be shown using convex hull analysis). In this case, the substitution eta=-(delta+1/2)
+ * is used instead to keep the variable integral. Incrementing delta by 1 still translates to
+ * decrementing eta by 1, but negating delta now corresponds to going from eta to -(eta+1), or
+ * ~eta. Doing that conditionally based on c3 is simply:
+ *
+ *     ...
+ *     c3 = c1 & c2
+ *     eta = eta ^ c3
+ *     ...
  *
  * By replacing the loop in divsteps_n_matrix with a variant of the divstep code above (extended to
  * also apply all f operations to u, v and all g operations to q, r), a constant-time version of
@@ -487,7 +499,9 @@
  * faster non-constant time divsteps_n_matrix function.
  *
  * To do so, first consider yet another way of writing the inner loop of divstep operations in
- * gcd() from section 1. This decomposition is also explained in the paper in section 8.2.
+ * gcd() from section 1. This decomposition is also explained in the paper in section 8.2. We use
+ * the original version (initial delta=1) here, but still choose a different representation:
+ * eta = -delta. This permits more shared logic with the constant-time code.
  *
  * for _ in range(N):
  *     if g & 1 and eta < 0:
@@ -593,7 +607,7 @@
  *         # Conditionally add x, y, z to g, q, r.
  *         g, q, r = g + (x & c2), q + (y & c2), r + (z & c2)
  *         c1 &= c2                     # reusing c1 here for the earlier c3 variable
- *         eta = (eta ^ c1) - (c1 + 1)  # inlining the unconditional eta decrement here
+ *         eta = (eta ^ c1) - 1         # inlining the unconditional eta decrement here
  *         # Conditionally add g, q, r to f, u, v.
  *         f, u, v = f + (g & c1), u + (q & c1), v + (r & c1)
  *         # When shifting g down, don't shift q, r, as we construct a transition matrix multiplied
@@ -824,7 +838,8 @@ typedef struct {
     int64_t u, v, q, r;
 } secp256k1_modinv64_trans2x2;
 
-/* Compute the transition matrix and eta for 62 divsteps.
+/* Compute the transition matrix and eta for 59 divsteps (using eta=-(delta+1/2) representation).
+ * Note that the transformation matrix is scaled by 2^62 and not 2^59.
  *
  * Input:  eta: initial eta
  *         f0:  bottom limb of initial f
@@ -834,12 +849,12 @@ typedef struct {
  *
  * Implements the divsteps_n_matrix function from the explanation.
  */
-static uint64_t secp256k1_modinv64_divsteps_62(uint64_t eta, uint64_t f0, uint64_t g0, secp256k1_modinv64_trans2x2 *t) {
-    uint64_t u = 1, v = 0, q = 0, r = 1; /* start with identity matrix */
+static uint64_t secp256k1_modinv64_divsteps_59(uint64_t eta, uint64_t f0, uint64_t g0, secp256k1_modinv64_trans2x2 *t) {
+    uint64_t u = 8, v = 0, q = 0, r = 8; /* start with identity matrix times 8 */
     uint64_t c1, c2, f = f0, g = g0, x, y, z;
     int i;
 
-    for (i = 0; i < 62; ++i) {
+    for (i = 3; i < 62; ++i) {
         VERIFY_CHECK((f & 1) == 1); /* f must always be odd */
         VERIFY_CHECK((u * f0 + v * g0) == f << i);
         VERIFY_CHECK((q * f0 + r * g0) == g << i);
@@ -856,8 +871,8 @@ static uint64_t secp256k1_modinv64_divsteps_62(uint64_t eta, uint64_t f0, uint64
         r += z & c2;
         /* In what follows, c1 is a condition mask for (eta < 0) and (g & 1). */
         c1 &= c2;
-        /* Conditionally negate eta, and unconditionally subtract 1. */
-        eta = (eta ^ c1) - (c1 + 1);
+        /* Conditionally change eta into -eta-2 or eta-1. */
+        eta = (eta ^ c1) - 1;
         /* Conditionally add g,q,r to f,u,v. */
         f += g & c1;
         u += q & c1;
@@ -875,7 +890,7 @@ static uint64_t secp256k1_modinv64_divsteps_62(uint64_t eta, uint64_t f0, uint64
     return eta;
 }
 
-/* Compute the transition matrix and eta for 62 divsteps (variable time).
+/* Compute the transition matrix and eta for 62 divsteps (variable time, using eta=-delta representation)
  *
  * Input:  eta: initial eta
  *         f0:  bottom limb of initial f
@@ -945,7 +960,7 @@ static uint64_t secp256k1_modinv64_divsteps_62_var(uint64_t eta, uint64_t f0, ui
     return eta;
 }
 
-/* Compute (t/2^62) * [d, e] mod modulus, where t is a transition matrix for 62 divsteps.
+/* Compute (t/2^62) * [d, e] mod modulus, where t is a transition matrix scaled by 2^62.
  *
  * On input and output, d and e are in range (-2*modulus,modulus). All output limbs will be in range
  * (-2^62,2^62).
@@ -1031,7 +1046,7 @@ static void secp256k1_modinv64_update_de_62(secp256k1_modinv64_signed62 *d, secp
 #endif
 }
 
-/* Compute (t/2^62) * [f, g], where t is a transition matrix for 62 divsteps.
+/* Compute (t/2^62) * [f, g], where t is a transition matrix scaled by 2^62.
  *
  * This implements the update_fg function from the explanation.
  */
@@ -1116,13 +1131,13 @@ static void secp256k1_modinv64(secp256k1_modinv64_signed62 *x, const secp256k1_m
     secp256k1_modinv64_signed62 f = modinfo->modulus;
     secp256k1_modinv64_signed62 g = *x;
     int i;
-    uint64_t eta = -(uint64_t)1;
+    uint64_t eta = -(uint64_t)1; /* use the variant where eta = -(delta+1/2); delta starts at 1/2. */
 
-    /* Do 12 iterations of 62 divsteps each = 744 divsteps. 724 suffices for 256-bit inputs. */
-    for (i = 0; i < 12; ++i) {
-        /* Compute transition matrix and new eta after 62 divsteps. */
+    /* Do 10 iterations of 59 divsteps each = 590 divsteps. This suffices for 256-bit inputs. */
+    for (i = 0; i < 10; ++i) {
+        /* Compute transition matrix and new eta after 59 divsteps. */
         secp256k1_modinv64_trans2x2 t;
-        eta = secp256k1_modinv64_divsteps_62(eta, f.v[0], g.v[0], &t);
+        eta = secp256k1_modinv64_divsteps_59(eta, f.v[0], g.v[0], &t);
         /* Update d,e using that transition matrix. */
         secp256k1_modinv64_update_de_62(&d, &e, &t, modinfo);
         /* Update f,g using that transition matrix. */
@@ -1169,7 +1184,7 @@ static void secp256k1_modinv64_var(secp256k1_modinv64_signed62 *x, const secp256
     secp256k1_modinv64_signed62 f = modinfo->modulus;
     secp256k1_modinv64_signed62 g = *x;
     int i, j, len = 5;
-    uint64_t eta = -(uint64_t)1;
+    uint64_t eta = -(uint64_t)1; /* eta = -delta; delta is initially 1 (faster for the variable-time code) */
     int64_t cond, fn, gn;
 
     /* Do up to 12 iterations of 62 divsteps each, or until g=0 (whichever comes first). */
