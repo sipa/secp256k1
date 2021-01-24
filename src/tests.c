@@ -791,7 +791,7 @@ void test_num_jacobi(void) {
     /** test with secp group order as order */
     secp256k1_scalar_order_get_num(&order);
     random_scalar_order_test(&sqr);
-    secp256k1_scalar_sqr(&sqr, &sqr);
+    secp256k1_scalar_mul(&sqr, &sqr, &sqr);
     /* test residue */
     secp256k1_scalar_get_num(&n, &sqr);
     CHECK(secp256k1_num_jacobi(&n, &order) == 1);
@@ -1476,14 +1476,6 @@ void scalar_test(void) {
         secp256k1_scalar_mul(&r2, &s1, &s);
         secp256k1_scalar_mul(&t, &s2, &s);
         secp256k1_scalar_add(&r2, &r2, &t);
-        CHECK(secp256k1_scalar_eq(&r1, &r2));
-    }
-
-    {
-        /* Test square. */
-        secp256k1_scalar r1, r2;
-        secp256k1_scalar_sqr(&r1, &s1);
-        secp256k1_scalar_mul(&r2, &s1, &s1);
         CHECK(secp256k1_scalar_eq(&r1, &r2));
     }
 
@@ -2178,12 +2170,6 @@ void run_scalar_tests(void) {
                 CHECK(!secp256k1_scalar_check_overflow(&zz));
                 CHECK(secp256k1_scalar_eq(&one, &zz));
             }
-            secp256k1_scalar_mul(&z, &x, &x);
-            CHECK(!secp256k1_scalar_check_overflow(&z));
-            secp256k1_scalar_sqr(&zz, &x);
-            CHECK(!secp256k1_scalar_check_overflow(&zz));
-            CHECK(secp256k1_scalar_eq(&zz, &z));
-            CHECK(secp256k1_scalar_eq(&r2, &zz));
         }
     }
 }
