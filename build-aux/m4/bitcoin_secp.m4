@@ -9,6 +9,20 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 AC_MSG_RESULT([$has_64bit_asm])
 ])
 
+AC_DEFUN([SECP_CHECK_SIDE_EFFECT_FREE],[
+AC_MSG_CHECKING(whether compiler detects side effect free statements)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  extern int should_not_survive;
+  static int side_effect_free(void) {
+      int x=3;
+      return x*x == 15;
+  }
+]],[[
+  (void)(should_not_survive || side_effect_free());
+  ]])],[has_check_side_effect_free=yes],[has_check_side_effect_free=no])
+AC_MSG_RESULT([$has_check_side_effect_free])
+])
+
 dnl
 AC_DEFUN([SECP_OPENSSL_CHECK],[
   has_libcrypto=no

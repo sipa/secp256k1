@@ -218,6 +218,13 @@ else
     CFLAGS="-O2 $CFLAGS"
 fi
 
+SECP_CHECK_SIDE_EFFECT_FREE
+if test x"$have_check_side_effect_free" = x"yes"; then
+  set_check_side_effect_free=yes
+else
+  set_check_side_effect_free=no
+fi
+
 if test x"$req_asm" = x"auto"; then
   SECP_64BIT_ASM_CHECK
   if test x"$has_64bit_asm" = x"yes"; then
@@ -292,6 +299,16 @@ if test x"$use_external_asm" = x"yes"; then
   AC_DEFINE(USE_EXTERNAL_ASM, 1, [Define this symbol if an external (non-inline) assembly implementation is used])
 fi
 
+case $set_check_side_effect_free in
+yes)
+  AC_DEFINE(CHECK_SIDE_EFFECT_FREE, 1, [Define this symbol to enable checks for side-effect free statements])
+  ;;
+no)
+  ;;
+*)
+  AC_MSG_ERROR([invalid selection for check_side_effect_free])
+  ;;
+esac
 
 # Select wide multiplication implementation
 case $set_widemul in
