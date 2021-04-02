@@ -39,7 +39,7 @@ void print_number(const int64_t x) {
      * sense). */
     y = x_abs;
     c = 0;
-    while (y > 0LL && y < 100LL * FP_MULT && c < FP_EXP) {
+    while (y > 0LL && y < 10000LL * FP_MULT && c < FP_EXP) {
         y *= 10LL;
         c++;
     }
