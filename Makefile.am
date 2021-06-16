@@ -65,6 +65,9 @@ if USE_EXTERNAL_ASM
 if USE_ASM_ARM
 libsecp256k1_common_la_SOURCES = src/asm/field_10x26_arm.s
 endif
+if USE_ASM_X86_64_EXT
+libsecp256k1_common_la_SOURCES = src/asm/field_5x52_x86-64.s
+endif
 endif
 
 libsecp256k1_la_SOURCES = src/secp256k1.c

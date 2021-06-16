@@ -15,10 +15,16 @@
 #include "field.h"
 #include "modinv64_impl.h"
 
-#if defined(USE_ASM_X86_64)
-#include "field_5x52_asm_impl.h"
+#if defined(USE_EXTERNAL_ASM)
+/* External assembler implementation */
+void secp256k1_fe_mul_inner(uint64_t *r, const uint64_t *a, const uint64_t * SECP256K1_RESTRICT b);
+void secp256k1_fe_sqr_inner(uint64_t *r, const uint64_t *a);
 #else
-#include "field_5x52_int128_impl.h"
+#  if defined(USE_ASM_X86_64)
+#    include "field_5x52_asm_impl.h"
+#  else
+#    include "field_5x52_int128_impl.h"
+#   endif
 #endif
 
 /** Implements arithmetic modulo FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F,

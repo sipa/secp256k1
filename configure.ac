@@ -168,7 +168,7 @@ AC_ARG_ENABLE(external_default_callbacks,
 # Legal values are int64 (for [u]int64_t), int128 (for [unsigned] __int128), and auto (the default).
 AC_ARG_WITH([test-override-wide-multiply], [] ,[set_widemul=$withval], [set_widemul=auto])
 
-AC_ARG_WITH([asm], [AS_HELP_STRING([--with-asm=x86_64|arm|no|auto],
+AC_ARG_WITH([asm], [AS_HELP_STRING([--with-asm=x86_64|x86_64_ext|arm|no|auto],
 [assembly optimizations to use (experimental: arm) [default=auto]])],[req_asm=$withval], [req_asm=auto])
 
 AC_ARG_WITH([ecmult-window], [AS_HELP_STRING([--with-ecmult-window=SIZE|auto],
@@ -236,6 +236,8 @@ else
       AC_MSG_ERROR([x86_64 assembly optimization requested but not available])
     fi
     ;;
+  x86_64_ext)
+    ;;
   arm)
     ;;
   no)
@@ -253,7 +255,7 @@ case $set_asm in
 x86_64)
   AC_DEFINE(USE_ASM_X86_64, 1, [Define this symbol to enable x86_64 assembly optimizations])
   ;;
-arm)
+arm|x86_64_ext)
   use_external_asm=yes
   ;;
 no)
@@ -501,6 +503,7 @@ AM_CONDITIONAL([ENABLE_MODULE_EXTRAKEYS], [test x"$enable_module_extrakeys" = x"
 AM_CONDITIONAL([ENABLE_MODULE_SCHNORRSIG], [test x"$enable_module_schnorrsig" = x"yes"])
 AM_CONDITIONAL([USE_EXTERNAL_ASM], [test x"$use_external_asm" = x"yes"])
 AM_CONDITIONAL([USE_ASM_ARM], [test x"$set_asm" = x"arm"])
+AM_CONDITIONAL([USE_ASM_X86_64_EXT], [test x"$set_asm" = x"x86_64_ext"])
 
 # Make sure nothing new is exported so that we don't break the cache.
 PKGCONFIG_PATH_TEMP="$PKG_CONFIG_PATH"
