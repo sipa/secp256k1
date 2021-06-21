@@ -83,6 +83,63 @@ void random_field_element_magnitude(secp256k1_fe *fe) {
 #endif
 }
 
+void run_field_element_mul_test(void) {
+
+    secp256k1_fe u,v,w,z,mu,mv,mz,mmz;
+
+    int i,n=10;
+    uint64_t a = 0xFFULL,b = 0xFFFULL,c;
+
+    for (i=0;i<n;++i) {
+
+	a = a+i; b = b+i;
+        secp256k1_fe_set_int(&u,a);
+	random_field_element_magnitude(&u);
+	secp256k1_fe_set_int(&v,b);
+	random_field_element_magnitude(&v);
+	secp256k1_fe_mul(&w,&u,&v);
+	c = a*b;
+        secp256k1_fe_set_int(&z,c);
+	secp256k1_fe_negate(&mz,&z,1);
+	secp256k1_fe_add(&w,&mz);
+	secp256k1_fe_normalizes_to_zero(&w);
+    }
+    for (i=0;i<n;++i) {
+
+	a = a+i; b = b+i;
+        secp256k1_fe_set_int(&u,a);
+	secp256k1_fe_negate(&mu,&u,1);
+	random_field_element_magnitude(&mu);
+	secp256k1_fe_set_int(&v,b);
+	secp256k1_fe_negate(&mv,&v,1);
+	random_field_element_magnitude(&mv);
+	secp256k1_fe_mul(&w,&mu,&mv);
+	c = a*b;
+        secp256k1_fe_set_int(&z,c);
+	secp256k1_fe_negate(&mz,&z,1);
+	secp256k1_fe_add(&w,&mz);
+	secp256k1_fe_normalizes_to_zero(&w);
+    }
+
+    for (i=0;i<n;++i) {
+
+	a = a+i; b = b+i;
+        secp256k1_fe_set_int(&u,a);
+	secp256k1_fe_negate(&mu,&u,1);
+	random_field_element_magnitude(&mu);
+	secp256k1_fe_set_int(&v,b);
+	random_field_element_magnitude(&v);
+	secp256k1_fe_mul(&w,&mu,&v);
+	c = a*b;
+        secp256k1_fe_set_int(&z,c);
+	secp256k1_fe_negate(&mz,&z,1);
+	secp256k1_fe_negate(&mmz,&mz,2);
+	secp256k1_fe_add(&w,&mmz);
+	secp256k1_fe_normalizes_to_zero(&w);
+    }
+    printf("Tests passed\n");
+}
+
 void random_group_element_test(secp256k1_ge *ge) {
     secp256k1_fe fe;
     do {
@@ -6483,6 +6540,8 @@ int main(int argc, char **argv) {
 
     /* find random seed */
     secp256k1_testrand_init(argc > 2 ? argv[2] : NULL);
+
+    run_field_element_mul_test();
 
     /* initialize */
     run_context_tests(0);

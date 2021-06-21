@@ -262,7 +262,7 @@ static int secp256k1_ecdsa_sig_verify(const secp256k1_ecmult_context *ctx, const
         return 1;
     }
     if (secp256k1_fe_cmp_var(&xr, &secp256k1_ecdsa_const_p_minus_order) >= 0) {
-        /* xr + n >= p, so we can skip testing the second case. */
+       /* xr + n >= p, so we can skip testing the second case. */
         return 0;
     }
     secp256k1_fe_add(&xr, &secp256k1_ecdsa_const_order_as_fe);
