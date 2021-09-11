@@ -39,4 +39,7 @@ static void secp256k1_modinv32_var(secp256k1_modinv32_signed30 *x, const secp256
 /* Same as secp256k1_modinv32_var, but constant time in x (not in the modulus). */
 static void secp256k1_modinv32(secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo);
 
+/* Compute the Jacobi symbol for x (which must be normalized). Returns -2 if the result cannot be computed. */
+static int secp256k1_jacobi32_maybe_var(const secp256k1_modinv32_signed30 *x, const secp256k1_modinv32_modinfo *modinfo);
+
 #endif /* SECP256K1_MODINV32_H */
