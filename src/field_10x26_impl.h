@@ -1124,6 +1124,47 @@ static SECP256K1_INLINE void secp256k1_fe_cmov(secp256k1_fe *r, const secp256k1_
 #endif
 }
 
+static SECP256K1_INLINE void secp256k1_fe_half(secp256k1_fe *r) {
+    uint32_t t0 = r->n[0], t1 = r->n[1], t2 = r->n[2], t3 = r->n[3], t4 = r->n[4],
+             t5 = r->n[5], t6 = r->n[6], t7 = r->n[7], t8 = r->n[8], t9 = r->n[9];
+    uint32_t one = (uint32_t)1;
+    uint32_t mask = -(t0 & one) >> 6;
+
+#ifdef VERIFY
+    secp256k1_fe_verify(r);
+#endif
+
+    t0 += 0x3FFFC2FUL & mask;
+    t1 += 0x3FFFFBFUL & mask;
+    t2 += mask;
+    t3 += mask;
+    t4 += mask;
+    t5 += mask;
+    t6 += mask;
+    t7 += mask;
+    t8 += mask;
+    t9 += mask >> 4;
+
+    VERIFY_CHECK((t0 & one) == 0);
+
+    r->n[0] = (t0 >> 1) + ((t1 & one) << 25);
+    r->n[1] = (t1 >> 1) + ((t2 & one) << 25);
+    r->n[2] = (t2 >> 1) + ((t3 & one) << 25);
+    r->n[3] = (t3 >> 1) + ((t4 & one) << 25);
+    r->n[4] = (t4 >> 1) + ((t5 & one) << 25);
+    r->n[5] = (t5 >> 1) + ((t6 & one) << 25);
+    r->n[6] = (t6 >> 1) + ((t7 & one) << 25);
+    r->n[7] = (t7 >> 1) + ((t8 & one) << 25);
+    r->n[8] = (t8 >> 1) + ((t9 & one) << 25);
+    r->n[9] = (t9 >> 1);
+
+#ifdef VERIFY
+    r->magnitude = (r->magnitude >> 1) + 1;
+    r->normalized = 0;
+    secp256k1_fe_verify(r);
+#endif
+}
+
 static SECP256K1_INLINE void secp256k1_fe_storage_cmov(secp256k1_fe_storage *r, const secp256k1_fe_storage *a, int flag) {
     uint32_t mask0, mask1;
     VG_CHECK_VERIFY(r->n, sizeof(r->n));
