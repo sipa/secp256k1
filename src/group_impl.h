@@ -593,19 +593,15 @@ static void secp256k1_gej_add_ge(secp256k1_gej *r, const secp256k1_gej *a, const
     secp256k1_fe_sqr(&t, &rr_alt);                      /* t = Ralt^2 (1) */
     secp256k1_fe_mul(&r->z, &a->z, &m_alt);             /* r->z = Malt*Z (1) */
     infinity = secp256k1_fe_normalizes_to_zero(&r->z) & ~a->infinity;
-    secp256k1_fe_mul_int(&r->z, 2);                     /* r->z = Z3 = 2*Malt*Z (2) */
     secp256k1_fe_negate(&q, &q, 1);                     /* q = -Q (2) */
     secp256k1_fe_add(&t, &q);                           /* t = Ralt^2-Q (3) */
-    secp256k1_fe_normalize_weak(&t);
-    r->x = t;                                           /* r->x = Ralt^2-Q (1) */
-    secp256k1_fe_mul_int(&t, 2);                        /* t = 2*x3 (2) */
-    secp256k1_fe_add(&t, &q);                           /* t = 2*x3 - Q: (4) */
+    r->x = t;                                           /* r->x = Ralt^2-Q (3) */
+    secp256k1_fe_mul_int(&t, 2);                        /* t = 2*x3 (6) */
+    secp256k1_fe_add(&t, &q);                           /* t = 2*x3 - Q: (8) */
     secp256k1_fe_mul(&t, &t, &rr_alt);                  /* t = Ralt*(2*x3 - Q) (1) */
     secp256k1_fe_add(&t, &n);                           /* t = Ralt*(2*x3 - Q) + M^3*Malt (3) */
-    secp256k1_fe_negate(&r->y, &t, 3);                  /* r->y = Ralt*(Q - 2x3) - M^3*Malt (4) */
-    secp256k1_fe_normalize_weak(&r->y);
-    secp256k1_fe_mul_int(&r->x, 4);                     /* r->x = X3 = 4*(Ralt^2-Q) */
-    secp256k1_fe_mul_int(&r->y, 4);                     /* r->y = Y3 = 4*Ralt*(Q - 2x3) - 4*M^3*Malt (4) */
+    secp256k1_fe_negate(&r->y, &t, 3);                  /* r->y = Ralt*(Q - 2*x3) - M^3*Malt (4) */
+    secp256k1_fe_half(&r->y);                           /* r->y = (Ralt*(Q - 2*x3) - M^3*Malt)/2 (3) */
 
     /** In case a->infinity == 1, replace r with (b->x, b->y, 1). */
     secp256k1_fe_cmov(&r->x, &b->x, a->infinity);

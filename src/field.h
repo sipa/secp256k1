@@ -124,4 +124,6 @@ static void secp256k1_fe_storage_cmov(secp256k1_fe_storage *r, const secp256k1_f
 /** If flag is true, set *r equal to *a; otherwise leave it. Constant-time.  Both *r and *a must be initialized.*/
 static void secp256k1_fe_cmov(secp256k1_fe *r, const secp256k1_fe *a, int flag);
 
+static void secp256k1_fe_half(secp256k1_fe *r);
+
 #endif /* SECP256K1_FIELD_H */
