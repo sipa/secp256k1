@@ -56,6 +56,19 @@ static void secp256k1_fe_verify(const secp256k1_fe *a) {
     }
     VERIFY_CHECK(r == 1);
 }
+
+static void secp256k1_fe_get_bounds(secp256k1_fe *r, int m) {
+    VERIFY_CHECK(m >= 0);
+    VERIFY_CHECK(m <= 2048);
+    r->n[0] = 0xFFFFFFFFFFFFFULL * 2 * m;
+    r->n[1] = 0xFFFFFFFFFFFFFULL * 2 * m;
+    r->n[2] = 0xFFFFFFFFFFFFFULL * 2 * m;
+    r->n[3] = 0xFFFFFFFFFFFFFULL * 2 * m;
+    r->n[4] = 0x0FFFFFFFFFFFFULL * 2 * m;
+    r->magnitude = m;
+    r->normalized = (m == 0);
+    secp256k1_fe_verify(r);
+}
 #endif
 
 static void secp256k1_fe_normalize(secp256k1_fe *r) {
