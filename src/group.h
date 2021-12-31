@@ -101,6 +101,9 @@ static void secp256k1_gej_add_var(secp256k1_gej *r, const secp256k1_gej *a, cons
 /** Set r equal to the sum of a and b (with b given in affine coordinates, and not infinity). */
 static void secp256k1_gej_add_ge(secp256k1_gej *r, const secp256k1_gej *a, const secp256k1_ge *b);
 
+/** Set r equal to the sum of a and b (with b given in affine coordinates, and not infinity). */
+static void secp256k1_gej_add_ge_incomplete(secp256k1_gej *r, const secp256k1_gej *a, const secp256k1_ge *b);
+
 /** Set r equal to the sum of a and b (with b given in affine coordinates). This is more efficient
     than secp256k1_gej_add_var. It is identical to secp256k1_gej_add_ge but without constant-time
     guarantee, and b is allowed to be infinity. If rzr is non-NULL this sets *rzr such that r->z == a->z * *rzr (a cannot be infinity in that case). */

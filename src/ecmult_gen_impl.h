@@ -58,7 +58,7 @@ static void secp256k1_ecmult_gen(const secp256k1_ecmult_gen_context *ctx, secp25
      * 8 are ever nonzero, but having the zero padding at the end if COMB_BITS>256
      * avoids the need to deal with out-of-bounds reads from a scalar. */
     uint32_t recoded[(COMB_BITS + 31) >> 5] = {0};
-    int first = 1, i;
+    int count = 0, i;
 
     memset(&adds, 0, sizeof(adds));
 
@@ -192,15 +192,17 @@ static void secp256k1_ecmult_gen(const secp256k1_ecmult_gen_context *ctx, secp25
             secp256k1_fe_cmov(&add.y, &neg, sign);
 
             /* Add the looked up and conditionally negated value to r. */
-            if (EXPECT(first, 0)) {
+            if (EXPECT(count==0, 0)) {
                 /* If this is the first table lookup, we can skip addition. */
                 secp256k1_gej_set_ge(r, &add);
                 /* Give the entry a random Z coordinate to blind intermediary results. */
                 secp256k1_gej_rescale(r, &ctx->proj_blind);
-                first = 0;
-            } else {
+            } else if (EXPECT(count==COMB_BLOCKS*COMB_SPACING-1, 0)) {
                 secp256k1_gej_add_ge(r, r, &add);
+            } else {
+                secp256k1_gej_add_ge_incomplete(r, r, &add);
             }
+            ++count;
         }
 
         /* Double the result, except in the last iteration. */
