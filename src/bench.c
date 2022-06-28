@@ -137,6 +137,10 @@ static void bench_sign_run(void* arg, int iters) {
 # include "modules/ellsq/bench_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_ELLSWIFT
+# include "modules/ellswift/bench_impl.h"
+#endif
+
 int main(int argc, char** argv) {
     int i;
     secp256k1_pubkey pubkey;
@@ -237,6 +241,11 @@ int main(int argc, char** argv) {
 #ifdef ENABLE_MODULE_ELLSQ
     /* Elligator squared signature benchmarks */
     run_ellsq_bench(iters, argc, argv);
+#endif
+
+#ifdef ENABLE_MODULE_ELLSWIFT
+    /* ElligatorSwift benchmarks */
+    run_ellswift_bench(iters, argc, argv);
 #endif
 
     return 0;

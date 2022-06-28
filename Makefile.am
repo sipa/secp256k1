@@ -232,3 +232,7 @@ endif
 if ENABLE_MODULE_ELLSQ
 include src/modules/ellsq/Makefile.am.include
 endif
+
+if ENABLE_MODULE_ELLSWIFT
+include src/modules/ellswift/Makefile.am.include
+endif
