@@ -228,4 +228,58 @@ static void secp256k1_ecmult_const(secp256k1_gej *r, const secp256k1_ge *a, cons
     secp256k1_fe_mul(&r->z, &r->z, &Z);
 }
 
+static int secp256k1_ecmult_const_xonly(secp256k1_fe* r, const secp256k1_fe *n, const secp256k1_fe *d, const secp256k1_scalar *q, int bits, int known_on_curve) {
+
+    /* This algorithm is a generalization of Peter Dettman's technique for
+     * avoiding the square root in a random-basepoint x-only multiplication
+     * on a Weierstrass curve:
+     * https://mailarchive.ietf.org/arch/msg/cfrg/7DyYY6gg32wDgHAhgSb6XxMDlJA/
+     */
+    secp256k1_fe g, i;
+    secp256k1_ge p;
+    secp256k1_gej rj;
+
+    /* Compute g = (n^3 + B*d^3). */
+    secp256k1_fe_sqr(&g, n);
+    secp256k1_fe_mul(&g, &g, n);
+    if (d) {
+        secp256k1_fe b;
+        secp256k1_fe_sqr(&b, d);
+        secp256k1_fe_mul(&b, &b, d);
+        secp256k1_fe_mul(&b, &b, &secp256k1_fe_const_b);
+        secp256k1_fe_add(&g, &b);
+        if (!known_on_curve) {
+            secp256k1_fe c;
+            secp256k1_fe_mul(&c, &g, d);
+            if (secp256k1_fe_jacobi_var(&c) < 0) return 0;
+        }
+    } else {
+        secp256k1_fe_add(&g, &secp256k1_fe_const_b);
+        if (!known_on_curve) {
+            if (secp256k1_fe_jacobi_var(&g) < 0) return 0;
+        }
+    }
+
+    /* Compute base point P = (n*g, g^2), the effective affine version of
+     * (n*g, g^2, sqrt(d*g)), which has corresponding affine X coordinate
+     * n/d. */
+    secp256k1_fe_mul(&p.x, &g, n);
+    secp256k1_fe_sqr(&p.y, &g);
+    p.infinity = 0;
+
+    /* Perform x-only EC multiplication of P with q. */
+    secp256k1_ecmult_const(&rj, &p, q, bits);
+
+    /* The resulting (X, Y, Z) point on the effective-affine isomorphic curve
+     * corresponds to (X, Y, Z*sqrt(d*g)) on the secp256k1 curve. The affine
+     * version of that has X coordinate (X / (Z^2*d*g)). */
+    secp256k1_fe_sqr(&i, &rj.z);
+    secp256k1_fe_mul(&i, &i, &g);
+    if (d) secp256k1_fe_mul(&i, &i, d);
+    secp256k1_fe_inv(&i, &i);
+    secp256k1_fe_mul(r, &rj.x, &i);
+
+    return 1;
+}
+
 #endif /* SECP256K1_ECMULT_CONST_IMPL_H */
