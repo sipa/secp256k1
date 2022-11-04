@@ -354,6 +354,7 @@ int secp256k1_ellswift_create(const secp256k1_context* ctx, unsigned char *ell64
 
     /* Compute (affine) public key */
     ret = secp256k1_ec_pubkey_create_helper(&ctx->ecmult_gen_ctx, &seckey_scalar, &p, seckey32);
+    secp256k1_declassify(ctx, &p, sizeof(p)); /* not constant time in produced pubkey */
     secp256k1_fe_normalize_var(&p.x);
     secp256k1_fe_normalize_var(&p.y);
 
@@ -363,6 +364,7 @@ int secp256k1_ellswift_create(const secp256k1_context* ctx, unsigned char *ell64
     secp256k1_sha256_write(&hash, seckey32, 32);
     secp256k1_sha256_write(&hash, rnd32 ? rnd32 : ZERO, 32);
     secp256k1_sha256_write(&hash, ZERO, 32 - 9 - 4);
+    secp256k1_declassify(ctx, &hash, sizeof(hash)); /* hasher gets to declassify private key */
 
     /* Compute ElligatorSwift encoding and construct output. */
     secp256k1_ellswift_elligatorswift_var(&u, &t, &p, &hash);
