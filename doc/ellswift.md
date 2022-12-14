@@ -49,10 +49,10 @@ on $V$, at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E
 $F_{0,u}(t)$ will now be defined as:
 * Let $(X, Y) = m_u(t)$, where $m_u$ is a function from field elements to $S_u$.
 * Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$, where $\psi_u$ is a function from $S_u$ to $V$.
-* Return the first element $x$ of $\[x_3, x_2, x_1\]$ which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
+* Return the first element $x$ of $\[x_3, x_2, x_1\]$ (note the order!0 which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
-curves like `secp256k1`: $$m_u(t) = \left(\frac{u^3 + b + t^2}{2t}, \frac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$.
+curves like `secp256k1`: $$m_u(t) = \left(\frac{u^3 + b + t^2}{2t}, \frac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$).
 
@@ -61,6 +61,5 @@ The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3
 * $x_2 = -\frac{X}{2Y} - \frac{u}{2}$
 * $x_3 = u + 4Y^2$
 * $z = \frac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y}$.
-\left(\frac{X}{2Y} - \frac{u}{2}, -\frac{X}{2Y} - \frac{u}{2}, u + 4Y^2, \frac{g(u + 4Y^2)(}{2Y}
 
 $$\psi_u(X, Y) = (x_1, x_2, x_3, z) \text{where} \\ x_1 = \frac{X}{2Y} - \frac{u}{2} \\ x_2 = -\frac{X}{2Y} - \frac{u}{2} \\ x_3 = u + 4Y^2 \\ z = \frac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y}$$
