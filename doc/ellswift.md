@@ -120,8 +120,8 @@ $$
 * Finally, $S_u$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 
 Using those we can write $F_{0,u}^{-1}(x)$ precisely:
-* First find the set of $P = (v,w)$ solutions to $\psi_u(P) = x$:
-  * Assuming $x = x_1$, we find $v = x$, and using the $S_u$ equation, $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_2$, we find $v = -u-x$, and using the $S_u$ equation, $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$, and using the $S_u$ equations, $v = \frac{-u}{2} \pm \frac{\sqrt{-w^2(4(u^3 + 7) + 3w^2u^2)}}{2w^2}$.
+* First find the set of $P = (v,w)$ solutions to $\psi_u(P) = x$ (also using the $S_u$ equation):
+  * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \frac{-u}{2} \pm \frac{\sqrt{-w^2(4(u^3 + 7) + w^2(3u^2 + 4a))}}{2w^2}$.
 
