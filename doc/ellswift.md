@@ -89,7 +89,7 @@ used:
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
-* Run the normal decoding algorithm:
+* Run the normal decoding algorithm on $(u', t'')$.
   * Let $X = \frac{u'^3 + b - t''^2}{2t''}$.
   * Let $Y = \frac{X + t''}{u'\sqrt{-3}}$.
   * Return the first of $x$ in $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
