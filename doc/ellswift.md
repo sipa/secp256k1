@@ -63,6 +63,6 @@ $$
   x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} \\
   x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} \\
   x_3 & = & u + 4Y^2 \\
-  z   & = & \dfrac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y}
+  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a)
 \end{array}
 $$
