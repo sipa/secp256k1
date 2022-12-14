@@ -30,7 +30,7 @@ then evaluating $F(u, t)$. Encoding a given $x$ coordinate is done as follows:
 This is the *ElligatorSwift* algorithm, here given for just X coordinates. A version
 that can encode full points will be given later.
 
-## 2. The forward mapping function
+## 2. The decoding function
 
 First some definitions:
 * Let the curve $E$ be the set of points $(x, y)$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
@@ -40,7 +40,7 @@ First some definitions:
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$.
 
-Note that for $V$, the the left hand side of the equation $z^2$ is a square, and thus the right
+Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
 hand must also be square. Thus, out of the three right-hand side factors an even number (*0* or
 *2*) must be non-squares. This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be a squares (unless $z=0$, but that's not possible for
@@ -48,16 +48,16 @@ curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) 
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
 $F_{0,u}(t)$ will now be defined as:
-* Let $(X, Y) = m_u(t)$, where $m_u$ is a function from field elements to $S_u$.
-* Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$, where $\psi_u$ is a function from $S_u$ to $V$.
+* Let $P = (X, Y) = P_u(t)$, where $P_u$ is a function from field elements to $S_u$.
+* Let $(x_1, x_2, x_3, z) = \psi_u(P)$, where $\psi_u$ is a function from $S_u$ to $V$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
-curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b + t^2}{2t}, \dfrac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
-For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u$ (there defined as functions
+The function $P_u$ depends on various properties of the curve, but is particularly simple for $a=0$
+curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
-The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$ where:
+The function $\psi_u$ is the same for all curves: $\psi_u(P) = (x_1, x_2, x_3, z)$, where $P = (X,Y)$, is:
 
 $$
 \begin{array}{lcl}
@@ -67,3 +67,13 @@ $$
   z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a)
 \end{array}
 $$
+
+So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
+* Let $X = \frac{u^3 + b - t^2}{2t}$.
+* Let $Y = \frac{X + t}{u\sqrt{-3}}$.
+* Return the first of $x$ in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ that's on $E$.
+
+## 3. Avoiding edge cases in decoding
+
+## 4. The encoding function
+
