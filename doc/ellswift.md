@@ -114,8 +114,8 @@ $$
   x_3 & = & u + w^2 \\
   z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a)
 \end{array}
-
 $$
+
 * Similarly, $m_u^{-1}$ can be stated for $P = (v,w)$ as $m_u^{-1}(P) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
 * Finally, $S_u$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 
