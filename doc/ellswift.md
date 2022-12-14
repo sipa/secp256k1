@@ -57,16 +57,12 @@ For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u$ (th
 $X(u,t)$ and $Y(u,t)$).
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$ where:
-* $x_1 = \frac{X}{2Y} - \frac{u}{2}$
-* $x_2 = -\frac{X}{2Y} - \frac{u}{2}$
-* $x_3 = u + 4Y^2$
-* $z = \frac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y}$
 
 $$
-\psi_u(X, Y) = (x_1, x_2, x_3, z) \text{where} \begin{array}{lcl}
+\begin{array}{lcl}
   x_1 & = & \frac{X}{2Y} - \frac{u}{2} \\
   x_2 & = & -\frac{X}{2Y} - \frac{u}{2} \\
-  x_3 & = & u + 4Y^2 \\ z = \frac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y} \\
+  x_3 & = & u + 4Y^2 \\
   z   & = & \frac{g(x_3)(u^2 + ux_1 + x_1^2 + a)}{2Y}
 \end{array}
 $$
