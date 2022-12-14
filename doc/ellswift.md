@@ -24,7 +24,7 @@ then evaluating $F(u, t)$. Encoding a given $x$ coordinate is done as follows:
 * Loop:
   * Pick a random field element $u$.
   * Compute the set $L_u = F_{0,u}^{-1}(x)$ of $t$ values for which $F_{0,u}(t) = x$, which may have *0*, *4*, or *8* elements.
-  * With probability $1 - \frac{\\#L_u,8}$, restart the loop.
+  * With probability $1 - \frac{\\#L_u}{8}$, restart the loop.
   * Select a random $t \in L_u$ and return $(u, t)$.
 
 This is the $\textsc{ElligatorSwift}$ algorithm, here given for just X coordinates. A version
