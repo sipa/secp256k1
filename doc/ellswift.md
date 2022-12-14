@@ -94,6 +94,15 @@ used:
 
 ## 3. The encoding function
 
-Before explaining how encoding works, first switch to different variables. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
-$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$.
+To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for which $F_{0,u}(t) = x$, we reverse the process:
+* For each of the $x_\\{1,2,3\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions.
+  * For $x_1$ and $x_2$ there can be two such $(X, Y)$ each.
+  * For $x_3$ there can be four such $(X, Y)$.
+* Compute the set of $t$ inverses as $P_u^{-1}(P)$ applied to all of them.
+  * For $a=0$ curves, $P_u(t) = (X, Y)$ satisfies $t = u\sqrt{-3}Y - X$, which becomes an easy expression for mapping $(X, Y)$ back to $t$.
 
+
+Before explaining how encoding works, first switch to different variables. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
+$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$. So we get the corresponding:
+* $S_u'$ is the set of solutions $(v,w)$ to $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
+* $\psi_u'(
