@@ -86,9 +86,9 @@ In the paper, those divisions by zero all result in infinity being output due to
 projective coordinates. In the `ellswift` module, we try to avoid special cases by making sure all
 possible field elements $u$, $t$ map to valid X coordinate. To do so, the following approach is
 used:
-* Let $u'=u$ unless $u=0$, in which case $u'=1$.
-* Let $t'=t$ unless $t=0$, in which case $t'=1$.
-* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$.
+* Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
+* Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
+* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
 * Run the normal decoding algorithm:
   * Let $X = \frac{u'^3 + b - t''^2}{2t''}$.
   * Let $Y = \frac{X + t''}{u'\sqrt{-3}}$.
