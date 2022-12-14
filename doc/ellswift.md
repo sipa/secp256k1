@@ -57,7 +57,7 @@ curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
-The function $\psi_u$ is the same for all curves: $\psi_u(P) = (x_1, x_2, x_3, z)$, where $P = (X,Y)$, is:
+The function $\psi_u$ is the same for all curves: for $P = (X,Y)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where:
 
 $$
 \begin{array}{lcl}
@@ -99,10 +99,20 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ each.
   * For $x_3$ there can be four such $(X, Y)$.
 * Compute the set of $t$ inverses as $P_u^{-1}(P)$ applied to all of them.
-  * For $a=0$ curves, $P_u(t) = (X, Y)$ satisfies $t = u\sqrt{-3}Y - X$, which becomes an easy expression for mapping $(X, Y)$ back to $t$.
+  * For $a=0$ curves, $P_u^{-1}(P) = u\sqrt{-3}Y - X$, for $P = (X, Y)$.
+* For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
+* Return the remaining $t$ values.
 
+Before working out the formulas for all this, we switch to different variables for $P$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
+$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$. We can restate $\psi_u$ in terms of
+$(v, w)$: for $P = (v, w)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where
 
-Before explaining how encoding works, first switch to different variables. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
-$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$. So we get the corresponding:
-* $S_u'$ is the set of solutions $(v,w)$ to $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
-* $\psi_u'(
+$$
+\begin{array}{lcl}
+  x_1 & = & v \\
+  x_2 & = & -u - v \\
+  x_3 & = & u + w^2 \\
+  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a)
+\end{array}
+$$
+
