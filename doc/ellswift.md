@@ -105,8 +105,7 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 
 Before working out the formulas for all this, we switch to different variables for $P$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
 $w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$:
-* We can restate $\psi_u$ in terms of $(v, w)$: for $P = (v, w)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where
-  $$
+* We can restate $\psi_u$ in terms of $(v, w)$: for $P = (v, w)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where $$
   \begin{array}{lcl}
     x_1 & = & v \\
     x_2 & = & -u - v \\
