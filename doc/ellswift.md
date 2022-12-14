@@ -54,7 +54,7 @@ $F_{0,u}(t)$ will now be defined as:
 The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
 curves like `secp256k1`: $$m_u(t) = \left(\frac{u^3 + b + t^2}{2t}, \frac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u$ (there defined as functions
-$X(u,t)$ and $Y(u,t)$).
+$X(u,t)$ and $Y(u,t)$ ).
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$ where:
 
