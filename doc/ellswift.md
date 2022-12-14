@@ -116,3 +116,4 @@ $$
 \end{array}
 $$
 
+Similarly, $P_u^{-1}$ can be stated for $P = (v,w)$ as $P_u^{-1}(P) = w\left(u\frac{c-1}{2} - v\right)$.
