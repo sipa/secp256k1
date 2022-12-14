@@ -27,7 +27,7 @@ then evaluating $F(u, t)$. Encoding a given $x$ coordinate is done as follows:
   * With probability $1 - \frac{\\#L_u}{8}$, restart the loop.
   * Select a random $t \in L_u$ and return $(u, t)$.
 
-This is the $\textsc{ElligatorSwift}$ algorithm, here given for just X coordinates. A version
+This is the *ElligatorSwift* algorithm, here given for just X coordinates. A version
 that can encode full points will be given later.
 
 ## 2. The forward mapping function
