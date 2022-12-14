@@ -43,8 +43,8 @@ Note that for $V$, the the left hand side of the equation $z^2$ is a square, and
 hand must also be square. Thus, out of the three right-hand side factors an even number (*0* or
 *2*) must be non-squares. This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be a squares (unless $z=0$, but that's not possible for
-curves of odd order like `secp256k1`). That means that for any valid $(x_1,x_2,x_3,z)$
-on $V$, at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
+curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) \in V$,
+at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
 $F_{0,u}(t)$ will now be defined as:
 * Let $(X, Y) = m_u(t)$, where $m_u$ is a function from field elements to $S_u$.
@@ -52,7 +52,7 @@ $F_{0,u}(t)$ will now be defined as:
 * Return the first element $x$ of $\[x_3, x_2, x_1\]$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
-curves like `secp256k1`: $$m_u(t) = \left(\frac{u^3 + b + t^2}{2t}, \frac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
+curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b + t^2}{2t}, \dfrac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
