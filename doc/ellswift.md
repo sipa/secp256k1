@@ -116,4 +116,4 @@ $$
 \end{array}
 $$
 
-Similarly, $m_u^{-1}$ can be stated for $P = (v,w)$ as $m_u^{-1}(P) = w\left(u\frac{c-1}{2} - v\right)$.
+Similarly, $m_u^{-1}$ can be stated for $P = (v,w)$ as $m_u^{-1}(P) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
