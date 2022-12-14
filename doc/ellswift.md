@@ -95,7 +95,7 @@ used:
 ## 3. The encoding function
 
 To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for which $F_{0,u}(t) = x$, we reverse the process:
-* For each of the $x_\\{1,2,3\\}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions.
+* For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions.
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ each.
   * For $x_3$ there can be four such $(X, Y)$.
 * Compute the set of $t$ inverses as $P_u^{-1}(P)$ applied to all of them.
