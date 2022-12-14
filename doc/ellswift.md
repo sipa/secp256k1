@@ -49,7 +49,7 @@ at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 $F_{0,u}(t)$ will now be defined as:
 * Let $(X, Y) = m_u(t)$, where $m_u$ is a function from field elements to $S_u$.
 * Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$, where $\psi_u$ is a function from $S_u$ to $V$.
-* Return the first element $x$ of $\[x_3, x_2, x_1\]$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
+* Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
 curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b + t^2}{2t}, \dfrac{u^3 + b - t^2}{2tu\sqrt{-3}}\right)$$
