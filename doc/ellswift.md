@@ -68,12 +68,31 @@ $$
 \end{array}
 $$
 
+### 2.1 Decoding for *a=0* curves
+
 So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
 * Let $X = \frac{u^3 + b - t^2}{2t}$.
 * Let $Y = \frac{X + t}{u\sqrt{-3}}$.
-* Return the first of $x$ in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ that's on $E$.
+* Return the first of $x$ in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ for which $g(x)$ is square.
 
-## 3. Avoiding edge cases in decoding
+### 2.2 Avoiding edge cases in decoding
 
-## 4. The encoding function
+In the above procedure, there are 3 possible conditions that result in division by zero:
+* $t=0$ yields a division by zero in the computation of $X$ and $Y$.
+* $u=0$ yields a division by zero in the computation of $Y$.
+* If $u^3 + b + t^2$, $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
+
+In the paper, those divisions by zero all result in infinity being output due to the use of
+projective coordinates. In the `ellswift` module, we try to avoid special cases by making sure all
+possible field elements $u$, $t$ map to valid X coordinate. To do so, the following approach is
+used:
+* Let $u'=u$ unless $u=0$, in which case $u'=1$.
+* Let $t'=t$ unless $t=0$, in which case $t'=1$.
+* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$.
+* Run the normal decoding algorithm:
+  * Let $X = \frac{u'^3 + b - t''^2}{2t''}$.
+  * Let $Y = \frac{X + t''}{u'\sqrt{-3}}$.
+  * Return the first of $x$ in $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
+
+## 3. The encoding function
 
