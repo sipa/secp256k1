@@ -48,13 +48,13 @@ curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) 
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
 $F_{0,u}(t)$ will now be defined as:
-* Let $P = (X, Y) = P_u(t)$, where $P_u$ is a function from field elements to $S_u$.
+* Let $P = (X, Y) = m_u(t)$, where $m_u$ is a function from field elements to $S_u$.
 * Let $(x_1, x_2, x_3, z) = \psi_u(P)$, where $\psi_u$ is a function from $S_u$ to $V$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$ depends on various properties of the curve, but is particularly simple for $a=0$
-curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
-For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
+The function $m_u$ depends on various properties of the curve, but is particularly simple for $a=0$
+curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
 The function $\psi_u$ is the same for all curves: for $P = (X,Y)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where:
@@ -98,8 +98,8 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 * For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions.
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ each.
   * For $x_3$ there can be four such $(X, Y)$.
-* Compute the set of $t$ inverses as $P_u^{-1}(P)$ applied to all of them.
-  * For $a=0$ curves, $P_u^{-1}(P) = u\sqrt{-3}Y - X$, for $P = (X, Y)$.
+* Compute the set of $t$ inverses as $m_u^{-1}(P)$ applied to all of them.
+  * For $a=0$ curves, $m_u^{-1}(P) = u\sqrt{-3}Y - X$, for $P = (X, Y)$.
 * For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
 * Return the remaining $t$ values.
 
@@ -116,4 +116,4 @@ $$
 \end{array}
 $$
 
-Similarly, $P_u^{-1}$ can be stated for $P = (v,w)$ as $P_u^{-1}(P) = w\left(u\frac{c-1}{2} - v\right)$.
+Similarly, $m_u^{-1}$ can be stated for $P = (v,w)$ as $m_u^{-1}(P) = w\left(u\frac{c-1}{2} - v\right)$.
