@@ -95,7 +95,7 @@ used:
 ## 3. The encoding function
 
 To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for which $F_{0,u}(t) = x$, we reverse the process:
-* For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions.
+* For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $P = (X, Y)$ solutions on $S_u$.
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ each.
   * For $x_3$ there can be four such $(X, Y)$.
 * Compute the set of $t$ inverses as $m_u^{-1}(P)$ applied to all of them.
@@ -104,7 +104,9 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 * Return the remaining $t$ values.
 
 Before working out the formulas for all this, we switch to different variables for $P$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
-$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$. We can restate $\psi_u$ in terms of
+$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$.
+
+We can restate $\psi_u$ in terms of
 $(v, w)$: for $P = (v, w)$, $\psi_u(P) = (x_1, x_2, x_3, z)$, where
 
 $$
@@ -117,3 +119,11 @@ $$
 $$
 
 Similarly, $m_u^{-1}$ can be stated for $P = (v,w)$ as $m_u^{-1}(P) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+Finally, $S_u$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
+
+Using those we can write $F_{0,u}^{-1}(x)$ precisely:
+* First find the set of $P = (v,w)$ solutions to $\psi_u(P) = x$:
+  * Assuming $x = x_1$, we find $v = x$, and using the $S_u$ equation, $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_2$, we find $v = -u-x$, and using the $S_u$ equation, $w = \pm\sqrt{-\frac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$, and using the $S_u$ equations, $v = \frac{-u}{2} \pm \frac{\sqrt{-w^2(4(u^3 + 7) + 3w^2u^2)}}{2w^2}$.
+
