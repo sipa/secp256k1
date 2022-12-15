@@ -94,6 +94,8 @@ used:
   * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
   * Return the first of $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
 
+This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an X coordinate represented as a fraction).
+
 ## 3. The encoding function
 
 To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for which $F_{0,u}(t) = x$, we reverse the process:
@@ -111,10 +113,10 @@ which would take precedence over the $x_1$ or $x_2$ decoding. These $t$ values m
 
 Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates for any $t$,
 the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is valid must mean that all three are valid.
-Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding (so, $x_2$ or $x_1$) is also on the curve.
-If that is the case, no $t$ found through those expressions is valid, as it'd be decoded through $x_3$ instead.
+This means that instead of checking whether $x_3$ is on the curve, it is also possible to check the other one out of
+$x_1$ and $x_2$ is on the curve. This is significantly simpler, as it turns out.
 
-To do this, observe that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
+Observe that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
 $-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $g(-u-x)$ is a square,
 and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
 at the verify beginning of the algorithm.
