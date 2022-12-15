@@ -73,9 +73,9 @@ $$
 ### 2.1 Decoding for *a=0* curves
 
 So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
-* Let $X = \frac{u^3 + b - t^2}{2t}$.
-* Let $Y = \frac{X + t}{u\sqrt{-3}}$.
-* Return the first of $x$ in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ for which $g(x)$ is square.
+* Let $X = \dfrac{u^3 + b - t^2}{2t}$.
+* Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
+* Return the first of $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
 In the above procedure, there are 3 possible conditions that result in division by zero:
 * $t=0$ yields a division by zero in the computation of $X$ and $Y$.
