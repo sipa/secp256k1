@@ -101,7 +101,7 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ solutions each.
   * For $x_3$ there can be four such $(X, Y)$ solutions.
 * Compute the set of $t$ values for which $m_u(t) = (X, Y)$ for all these $(X, Y)$ solutions.
-  * For $a=0$ curves, that set consists of $m_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ applies to all $(X, Y)$.
+  * For $a=0$ curves, that set consists of $m_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ applied to all $(X, Y)$.
 * For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
 * Return the remaining $t$ values.
 
