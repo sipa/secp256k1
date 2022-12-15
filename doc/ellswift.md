@@ -45,7 +45,7 @@ First some definitions:
 Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
 hand must also be square. Thus, out of the three right-hand side factors an even number (*0* or
 *2*) must be non-squares. This implies that exactly *1* or exactly *3* out of
-$\\{g(x_1), g(x_2), g(x_3)\\}$ must be a squares (unless $z=0$, but that's not possible for
+$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square (unless $z=0$, but that's not possible for
 curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) \in V$,
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
