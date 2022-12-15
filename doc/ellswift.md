@@ -220,8 +220,10 @@ There are a few special conditions that only happen with negligible probability,
 * If the returned value would be $0$, return $\bot$ instead, as $t=0$ is invalid. For $a=0$ curves this coincides with the
   previous condition, and is thus already excluded.
 * If $c \in \\{3,7\\}$ and $r=0$, return $\bot$ instead as it would mean the two $x_3$ formulas are equal otherwise.
-* If $c \in \\{1,5\\}$ and $u = -2v$, return $\bot$ instead as otherwise the $x_1$ and $x_2$ formulas would be equal.
+* If $c \in \\{1,5\\}$ and $u = -2x$, return $\bot$ instead as otherwise the $x_1$ and $x_2$ formulas would be equal.
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
   This is not possible for odd-ordered curves.
+* It is not possible for $\frac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\}}$ branch, because 
+  $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered.
 
 This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
