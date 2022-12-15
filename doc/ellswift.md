@@ -107,7 +107,7 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 
 The third step here, verifying that $F_{0,u}(t) = x$, is necessary because for the $t$ values found through the $x_1$ and $x_2$ expressions,
 it is possible that decoding through $x_3$ takes it to a valid X coordinate different from $x$,
-which would take preference over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected.
+which would take precedence over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected.
 
 Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates for any $t$,
 the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is valid must mean that all three are valid.
@@ -118,6 +118,11 @@ To do this, observe that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2
 $-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $g(-u-x)$ is a square,
 and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
 at the verify beginning of the algorithm.
+
+It's not possible that an encoding found through the $x_1$ expression decodes to a valid X coordinate using $x_2$ (which would
+take precedence), for the same reason: if both $x_1$ and $x_2$ decodings were valid, $x_3$ would be valid as well, and thus take
+precedence over both. Because of this, the $g(-u-x)$ being square test is the only test necessary to guarantee the found $t$
+values round-trip back to the input $x$ correctly.
 
 ### 3.1 Switching to *v, w* coordinates
 
