@@ -110,9 +110,10 @@ This case only occurs if the found $t$ value decodes to valid X coordinate throu
 We know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates, so if there are two, there must be a third.
 Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding (so, $x_2$ or $x_1$) is also on the curve.
 If that is the case, no $t$ found through those expressions is valid, as it'd be decoded through $x_3$ instead.
-There is a simple expression to find this other: $-u-x$. So all this amounts to is checking in the
-$x_1$ and $x_2$ case whether $-u-x$ is on the curve, and if so, not including the corresponding $t$ value in the returned set of
-inverses. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
+
+To do this, observe that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
+$-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $-u-x$ is a valid X coordinate
+on $E$, and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
 at the verify beginning of the algorithm.
 
 ### 3.1 Switching to *v, w* coordinates
