@@ -54,7 +54,7 @@ $F_{0,u}(t)$ will now be defined as:
 * Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $m_u$ depends on various properties of the curve, but is fairly simple for $a=0$
+The function $m_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
 curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
