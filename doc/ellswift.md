@@ -160,14 +160,14 @@ solutions have to satisfy:
 The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_{0,u}^{-1}(x)$ (the
 set of all $t$ such that $(u, t)$ decode to $x$) in full. This is in fact not necessary.
 
-Observe that the procedure of restarting with probability $1 - \dfrac{\#L}{8}$ and otherwise returning a
+Observe that the procedure of restarting with probability $1 - \dfrac{\\#L}{8}$ and otherwise returning a
 uniformly random element from $L$ is actually equivalent to always padding $L$ with $\bot$ values up to length 8,
 picking a uniformly random element from that, restarting whenever $\bot$ is picked:
 
 * Loop:
   * Pick a uniformly random field element $u \neq 0$.
   * Compute the set $L = F_{0,u}^{-1}(x)$.
-  * Let $T$ be the array consisting of the elements of $L$, plus $8 - \#L$ times $\bot$.
+  * Let $T$ be the array consisting of the elements of $L$, plus $8 - \\#L$ times $\bot$.
   * Select a uniformly random $t \in T$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
