@@ -103,6 +103,17 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 * For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
 * Return the remaining $t$ values.
 
+The third step here, verifying that $F_{0,u}(t) = x$, is necessary because for the $t$ values found through the $x_1$ and $x_2$ expressions,
+it is possible that decoding through $x_3$ takes it to a valid X coordinate,
+which would take preference over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected, but that is very easy.
+This case only occurs if the found $t$ value decodes to valid X coordinate through $x_1$ or $x_2$ plus through $x_3$.
+We know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates, so if there are two, there must be a third.
+Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding ($x_2$ or $x_1$) is also on the curve.
+If that is the case, no $t$ found through those expressions is valid, as it'd be decoded through $x_3$ instead.
+There is a simple expression to find this other ($x_2$ or $x_1$): $-u-x$. So all this amounts to is checking in the
+$x_1$ and $x_2$ case whether $-u-x$ is on the curve. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
+at the verify beginning.
+
 ### 3.1 Switching to *v, w* coordinates
 
 Before working out the formulas for all this, we switch to different variables for $P$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
@@ -123,18 +134,9 @@ $$
 
 ### 3.2 Full inversion algorithm
 
-
 Using those we can write $F_{0,u}^{-1}(x)$ precisely:
 * First find the set of $P = (v,w)$ solutions to $\psi_u(P) = x$ (also using the $S_u$ equation):
   * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
 * Convert that set of $P$ solutions to a set of $t$ solutions, using $t = m_u^{-1}(P) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
-* For the $t$ values found through the $x_1$ and $x_2$ expressions, it is possible that decoding through $x_3$ takes it to a valid X coordinate,
-  which would take preference over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected, but that is very easy.
-  This case only occurs if the found $t$ value decodes to valid X coordinate through $x_1$ or $x_2$ plus through $x_3$.
-  We know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates, so if there are two, there must be a third.
-  Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding ($x_2$ or $x_1$) is also on the curve.
-  If that is the case, no $t$ found through those expressions is valid, as it'd be decoded through $x_3$ instead.
-  There is a simple expression to find this other ($x_2$ or $x_1$): $-u-x$. So all this amounts to is checking in the
-  $x_1$ and $x_2$ case whether $-u-x$ is on the curve. In fac
