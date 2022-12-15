@@ -90,9 +90,9 @@ used:
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
 * Run the normal decoding algorithm on $(u', t'')$:
-  * Let $X = \frac{u'^3 + b - t''^2}{2t''}$.
-  * Let $Y = \frac{X + t''}{u'\sqrt{-3}}$.
-  * Return the first of $x$ in $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
+  * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
+  * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
+  * Return the first of $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
 
 ## 3. The encoding function
 
@@ -126,8 +126,8 @@ values round-trip back to the input $x$ correctly.
 
 ### 3.1 Switching to *v, w* coordinates
 
-Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
-$w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$:
+Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \dfrac{X}{2Y} - \dfrac{u}{2}$, and
+$w = 2Y$. Or in the other direction, $X = \dfrac{w}{2}(u+2v)$ and $Y = \dfrac{w}{2}$:
 * $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 * We can restate $\psi_u$ in terms of $(v, w)$: $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
@@ -140,7 +140,7 @@ $$
 \end{array}
 $$
 
-* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
 
 ### 3.2 Full inversion algorithm
 
@@ -149,4 +149,4 @@ Using those we can write $F_{0,u}^{-1}(x)$ precisely:
   * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
-* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
