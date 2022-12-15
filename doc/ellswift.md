@@ -134,7 +134,7 @@ $$
 \end{array}
 $$
 
-* Similarly, $m_u^{-1}$ can be stated for $(v,w)$ as $m'_u^{-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* Similarly, $m_u^{-1}$ can be stated for $(v,w)$ as $m_u^{'-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
 * Finally, $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 
 ### 3.2 Full inversion algorithm
