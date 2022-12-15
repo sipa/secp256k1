@@ -191,18 +191,34 @@ the loop can be simplified to only compute one of the inverses instead of all of
   * Let $t = C_{c,u}(x)$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
-We map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=3$ to the $x_3$ formula.
-Those are then repeated as $c=4$ through $c=7$ for the other sign of $w$ (noting that in each formula, $w$ is a square root of some expression):
+This is implemented in `secp256k1_ellswift_xelligatorswift_var`.
 
+We map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=3$ to the $x_3$ formula.
+Those are then repeated as $c=4$ through $c=7$ for the other sign of $w$ (noting that in each formula, $w$ is a square root of some expression).
 Define $C_{c,u}(x)$ as:
-* If $c \\,\\&\\, 2$ (for $x_1$ and $x_2$ formulas):
+
+* If $c \in \\{0, 1, 4, 5\\}$ (for $x_1$ and $x_2$ formulas):
   * If $g(-u-x)$ is square, return $\bot$ (as $x_3$ would be valid and take precedence).
-  * If $c \\,\\&\\, 1$ (the $x_1$ formula) let $v = -u-x$, otherwise let $v = x$.
+  * If $c \in \\{0, 4\\}$ (the $x_1$ formula) let $v = x$, otherwise let $v = -u-x$ (the $x_2$ formula)
   * Let $s = \dfrac{-g(u)}{u^2 + uv + v^2 + a}$ (let $s = w^2$ in what follows).
-* Otherwise (for $x_3$ formulas):
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$ return $\bot$ if it doesn't exist.
-  * Let $r' = -r$ if $c\\,\\&\\,1$, let $r' = r$ otherwise.
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$
+  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = r$ otherwise.
   * Let $v = \dfrac{r}{2s}-\dfrac{u}{2}$.
-* Let $w = -\sqrt{s}$ if $c \\,\\&\\, 4$, $w = \sqrt{s}$ otherwise. Return $\bot$ if it doesn't exist.
+* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
+
+Whenever any of the computed square roots don't exist, return $\bot$. That will occur roughly 50% of the time.
+
+There are a few special conditions that only happen with negligible probability, and could be dealt with:
+* If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
+  This happens when $c \in \\{6,7\\}$ and $x=u$, or when $c \in \\{4,5\\}$ and $g(u)=0$. The latter condition is impossible for
+  odd-ordered curves.
+* If the returned value would be $0$, return $\bot$ instead, as $t=0$ is invalid. For $a=0$ curves this coincides with the
+  previous condition, and is thus already excluded.
+* If $c \in \\{3,7\\}$ and $r=0$, return $\bot$ instead as it would mean the two $x_3$ formulas are equal otherwise.
+* If $c \in \\{1,5\\}$ and $u = -2v$, return $\bot$ instead as otherwise the $x_1$ and $x_2$ formulas would be equal.
+* If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
+  This is not possible for odd-ordered curves.
+
