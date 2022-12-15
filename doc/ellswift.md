@@ -176,7 +176,7 @@ random element in it. As we have 8 distinct formulas for $\psi_u^{'-1}$ (taking 
 we can populate $T$ with the evaluations of those formulas, in order, taking into account:
 * Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead.
-* In case multiple formulas would return the same non-$\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
+* In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
 The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
 to take into account as they allow exhaustive testing in small groups.
