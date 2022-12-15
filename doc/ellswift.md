@@ -36,7 +36,7 @@ First some definitions:
 * Let the curve $E$ be the set of points $(x, y)$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants.
   * For `secp256k1`, $a=0$ and $b=7$.
-* Let the function $g(x) = x^3 + ax + b$, so the curve equation is also $y^2 = g(x)$.
+* Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$.
 * $m_u$ is a function from field elements to $S_u$ that will be defined later.
