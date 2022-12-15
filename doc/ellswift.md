@@ -143,7 +143,7 @@ $$
 \end{array}
 $$
 
-* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
+* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
 
 ### 3.2 Avoiding computing all inverses
 
