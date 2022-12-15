@@ -202,7 +202,7 @@ Define $C_{c,u}(x)$ as:
 * Otherwise ($x_3$ formulas):
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$ (this would return in $t=0$ being returned).
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}; return $\bot$ if it doesn't exist.
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$ return $\bot$ if it doesn't exist.
   * Let $r' = -r$ if $c \\& 1$ (negated $\sqrt{}$ in $x_3$ formula), let $r' = r$ otherwise.
   * If $c \\& 1$ and $r = r'$ (or $r = 0$), return $\bot$ as otherwise both $x_3$ formulas would be equal.
   * Let $v = \frac{r}{2s}-\frac{u}{2}.
