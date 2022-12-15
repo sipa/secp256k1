@@ -108,8 +108,7 @@ it is possible that decoding through $x_3$ takes it to a valid X coordinate,
 which would take preference over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected, but that is very easy.
 This case only occurs if the found $t$ value decodes to valid X coordinate through $x_1$ or $x_2$ plus through $x_3$.
 We know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates, so if there are two, there must be a third.
-Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding
-($x_2$ or $x_1$) is also on the curve.
+Therefore it is sufficient for the $x_1$ and $x_2$ case to check whether the other decoding (so, $x_2$ or $x_1$) is also on the curve.
 If that is the case, no $t$ found through those expressions is valid, as it'd be decoded through $x_3$ instead.
 There is a simple expression to find this other ($x_2$ or $x_1$): $-u-x$. So all this amounts to is checking in the
 $x_1$ and $x_2$ case whether $-u-x$ is on the curve. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
