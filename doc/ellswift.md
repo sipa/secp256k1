@@ -206,7 +206,7 @@ Define $C_{c,u}(x)$ as:
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$
-  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = r$ otherwise.
+  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
   * Let $v = \dfrac{r}{2s}-\dfrac{u}{2}$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
