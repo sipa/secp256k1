@@ -84,7 +84,7 @@ In the above procedure, there are 3 possible conditions that result in division 
 
 In the paper, those divisions by zero all result in infinity being output due to the use of
 projective coordinates. In the `ellswift` module, we avoid these special cases by making sure all
-possible field elements $u$, $t$ map to valid X coordinate. To do so, the following approach is
+possible field elements $u$, $t$ map to valid X coordinates. To do so, the following approach is
 used:
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
