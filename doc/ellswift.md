@@ -202,7 +202,7 @@ Define $C_{c,u}(x)$ as:
 * Otherwise (for $x_3$ formulas):
   * Let $s = x-u$.
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$ return $\bot$ if it doesn't exist.
-  * Let $r' = -r$ if $c \\& 1$ (negated $\sqrt{}$ in $x_3$ formula), let $r' = r$ otherwise.
+  * Let $r' = -r$ if $c\,\\&\,1$, let $r' = r$ otherwise.
   * Let $v = \dfrac{r}{2s}-\dfrac{u}{2}$.
 * Let $w = -\sqrt{s}$ if $c \\& 4$, $w = \sqrt{s}$ otherwise. Return $\bot$ if it doesn't exist.
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
