@@ -134,7 +134,7 @@ $$
 \end{array}
 $$
 
-* Similarly, $m_u^{-1}$ can be stated for $(v,w)$ as $m_u^{-1}'(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* Similarly, $m_u^{-1}$ can be stated for $(v,w)$ as $m_u^{'-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
 * Finally, $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 
 ### 3.2 Full inversion algorithm
@@ -144,4 +144,4 @@ Using those we can write $F_{0,u}^{-1}(x)$ precisely:
   * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
-* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = m_u^{-1}'(v, w) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = m_u^{'-1}(v, w) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
