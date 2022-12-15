@@ -80,7 +80,7 @@ So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves correspon
 In the above procedure, there are 3 possible conditions that result in division by zero:
 * $t=0$ yields a division by zero in the computation of $X$ and $Y$.
 * $u=0$ yields a division by zero in the computation of $Y$.
-* If $u^3 + b + t^2$, $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
+* If $u^3 + b + t^2 = 0$, then $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
 
 In the paper, those divisions by zero all result in infinity being output due to the use of
 projective coordinates. In the `ellswift` module, we avoid these special cases by making sure all
