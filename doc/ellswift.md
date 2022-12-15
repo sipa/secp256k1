@@ -211,7 +211,9 @@ Define $C_{c,u}(x)$ as:
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
 
-Whenever any of the computed square roots don't exist, return $\bot$. That will occur roughly 50% of the time.
+Whenever any of the computed square roots don't exist, return $\bot$; that will occur roughly 50% of the time.
+It is not possible for $\frac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because 
+$u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
@@ -222,8 +224,6 @@ There are a few special conditions that only happen with negligible probability,
 * If $c \in \\{3,7\\}$ and $r=0$, return $\bot$ instead as it would mean the two $x_3$ formulas are equal otherwise.
 * If $c \in \\{1,5\\}$ and $u = -2x$, return $\bot$ instead as otherwise the $x_1$ and $x_2$ formulas would be equal.
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
-  This is not possible for odd-ordered curves.
-* It is not possible for $\frac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because 
-  $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered.
+  This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve).
 
 This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
