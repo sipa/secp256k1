@@ -39,7 +39,7 @@ First some definitions:
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$.
-* $m_u$ is a function from field elements to $S_u$ that will be defined later.
+* $P_u$ is a function from field elements to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
@@ -50,13 +50,13 @@ curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) 
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
 $F_{0,u}(t)$ will now be defined as:
-* Let $(X, Y) = m_u(t)$.
+* Let $(X, Y) = P_u(t)$.
 * Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $m_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
-curves like `secp256k1`: $$m_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
-For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $m_u(t)$ (there defined as functions
+The function $P_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
+curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
@@ -100,8 +100,8 @@ To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for
 * For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $(X, Y)$ solutions on $S_u$.
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ solutions each.
   * For $x_3$ there can be four such $(X, Y)$ solutions.
-* Compute the set of $t$ values for which $m_u(t) = (X, Y)$ for all these $(X, Y)$ solutions.
-  * For $a=0$ curves, that set consists of $m_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ applied to all $(X, Y)$.
+* Compute the set of $t$ values for which $P_u(t) = (X, Y)$ for all these $(X, Y)$ solutions.
+  * For $a=0$ curves, that set consists of $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ applied to all $(X, Y)$.
 * For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
 * Return the remaining $t$ values.
 
@@ -126,8 +126,9 @@ values round-trip back to the input $x$ correctly.
 
 ### 3.1 Switching to *v, w* coordinates
 
-Before working out the formulas for all this, we switch to different variables for $P$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
+Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \frac{X}{2Y} - \frac{u}{2}$, and
 $w = 2Y$. Or in the other direction, $X = \frac{w}{2}(u+2v)$ and $Y = \frac{w}{2}$:
+* $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 * We can restate $\psi_u$ in terms of $(v, w)$: $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
 $$
@@ -139,8 +140,7 @@ $$
 \end{array}
 $$
 
-* Similarly, $m_u^{-1}$ can be stated for $(v,w)$ as $m_u^{'-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
-* Finally, $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
+* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
 
 ### 3.2 Full inversion algorithm
 
@@ -149,4 +149,4 @@ Using those we can write $F_{0,u}^{-1}(x)$ precisely:
   * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
   * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
-* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = m_u^{'-1}(v, w) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
+* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\frac{\sqrt{-3}-1}{2} - v\right)$.
