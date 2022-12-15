@@ -22,10 +22,10 @@ $F_0$ will be defined later. Decoding is simply decoding the field elements $u$ 
 then evaluating $F(u, t)$. Encoding a given $x$ coordinate is conceptually done as follows:
 
 * Loop:
-  * Pick a random field element $u$.
-  * Compute the set $L_u = F_{0,u}^{-1}(x)$ of $t$ values for which $F_{0,u}(t) = x$, which may have *0*, *4*, or *8* elements.
-  * With probability $1 - \frac{\\#L_u}{8}$, restart the loop.
-  * Select a uniformly random $t \in L_u$ and return $(u, t)$.
+  * Pick a uniformy random field element $u \neq 0$.
+  * Compute the set $L = F_{0,u}^{-1}(x)$ of $t$ values for which $F_{0,u}(t) = x$, which may have *0*, *4*, or *8* elements.
+  * With probability $1 - \frac{\\#L}{8}$, restart the loop.
+  * Select a uniformly random $t \in L$ and return $(u, t)$.
 
 This is the *ElligatorSwift* algorithm, here given for just X coordinates. An extension to full
 $(x, y)$ points will be given later.
@@ -146,19 +146,47 @@ $$
 \end{array}
 $$
 
-* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
+* $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
+
+We can now write the expressions for $\psi_u^{'-1}(x)$ explicitly, by solving each of the $x_{\\{1,2,3\\}}$
+expressions for $v$ and $w$, also using the $S_u'$ equation $w^2 (u^2 + uv + v^2 + a) = -g(u)$ those
+solutions have to satisfy:
+* Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
 
 ### 3.2 Avoiding computing all inverses
 
-The ElligatorSwift algorithm as stated in Section 1 requires the computation of $F_{0,u}^{-1}(x)$ (the
+The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_{0,u}^{-1}(x)$ (the
 set of all $t$ such that $(u, t)$ decode to $x$) in full. This is in fact not necessary.
 
+Observe that the procedure of restarting with probability $1 - \dfrac{\#L}{8}$ and otherwise returning a
+uniformly random element from $L$ is actually equivalent to always padding $L$ with $\bot$ values up to length 8,
+picking a uniformly random element from that, restarting whenever $\bot$ is picked:
 
-A significant simplification is possible
+* Loop:
+  * Pick a uniformly random field element $u \neq 0$.
+  * Compute the set $L = F_{0,u}^{-1}(x)$.
+  * Let $T$ be the array consisting of the elements of $L$, plus $8 - \#L$ times $\bot$.
+  * Select a uniformly random $t \in T$.
+  * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
-Using those we can write $F_{0,u}^{-1}(x)$ precisely:
-* First find the set of $(v,w)$ solutions to $\psi_u'(v, w) = x$ (also using the $S_u'$ equation):
-  * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
-* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
+Now notice that the order of elements in $T$ doesn't actually matter, as all we do is pick a uniformly
+random element in it. As we have 8 distinct formulas for $\psi_u^{'-1}$ (taking the variants due to $\pm$ into account),
+we can populate $T$ with the evaluations of those formulas, in order, taking into account:
+* Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
+* For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead.
+* In case multiple formulas would return the same non-$\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
+
+The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
+to take into account as they allow exhaustive testing in small groups.
+
+If we define $L = (C_{0,u}(x), C_{1,u}(x), C_{2,u}(x), \ldots, C_{7,u}(x))$, with each $C_{i,u}$ matching one of the formulas,
+the loop can be simplified to only compute one of the inverses instead of all of them:
+
+* Loop:
+  * Pick a uniformly random field element $u \neq 0$.
+  * Pick a uniformly random integer $c$ in $[0,8)$.
+  * Let $t = C_{c,u}(x)$.
+  * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
+
