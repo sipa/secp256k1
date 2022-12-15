@@ -55,7 +55,7 @@ $F_{0,u}(t)$ will now be defined as:
 * Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $P_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
-curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+curves like `secp256k1`: $$P_u(t) = \left(\tfrac{u^3 + b - t^2}{2t}, \tfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
 For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
 $X(u,t)$ and $Y(u,t)$ ).
 
@@ -63,19 +63,19 @@ The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3
 
 $$
 \begin{array}{lcl}
-  x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} \\
-  x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} \\
+  x_1 & = & \tfrac{X}{2Y} - \tfrac{u}{2} \\
+  x_2 & = & -\tfrac{X}{2Y} - \tfrac{u}{2} \\
   x_3 & = & u + 4Y^2 \\
-  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a)
+  z   & = & \tfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a)
 \end{array}
 $$
 
 ### 2.1 Decoding for *a=0* curves
 
 So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
-* Let $X = \dfrac{u^3 + b - t^2}{2t}$.
-* Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
-* Return the first of $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
+* Let $X = \tfrac{u^3 + b - t^2}{2t}$.
+* Let $Y = \tfrac{X + t}{u\sqrt{-3}}$.
+* Return the first of $x$ in $(u + 4Y^2, \tfrac{-X}{2Y} - \tfrac{u}{2}, \tfrac{X}{2Y} - \tfrac{u}{2})$ for which $g(x)$ is square.
 
 In the above procedure, there are 3 possible conditions that result in division by zero:
 * $t=0$ yields a division by zero in the computation of $X$ and $Y$.
@@ -90,9 +90,9 @@ used:
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
 * Run the normal decoding algorithm on $(u', t'')$:
-  * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
-  * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
-  * Return the first of $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
+  * Let $X = \tfrac{u'^3 + b - t''^2}{2t''}$.
+  * Let $Y = \tfrac{X + t''}{u'\sqrt{-3}}$.
+  * Return the first of $x$ in $(u' + 4Y^2, \tfrac{-X}{2Y} - \tfrac{u'}{2}, \tfrac{X}{2Y} - \tfrac{u'}{2})$ for which $g(x)$ is square.
 
 This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an X coordinate represented as a fraction).
 
@@ -121,7 +121,7 @@ $-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one ca
 and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
 at the verify beginning of the algorithm.
 
-It's not possible that an encoding found through the $x_1$ expression decodes to a valid X coordinate using $x_2$ (which would
+It's not possible that an encoding found through the $x_1$ expression decodes to a different valid X coordinate using $x_2$ (which would
 take precedence), for the same reason: if both $x_1$ and $x_2$ decodings were valid, $x_3$ would be valid as well, and thus take
 precedence over both. Because of this, the $g(-u-x)$ being square test for $x_1$ and $x_2$ is the only test necessary to guarantee the found $t$
 values round-trip back to the input $x$ correctly. This is the reason for choosing the $(x_3, x_2, x_1)$ precedence order in the decoder;
@@ -129,8 +129,8 @@ any other order requires more complicated round-trip checks in the encoder.
 
 ### 3.1 Switching to *v, w* coordinates
 
-Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \dfrac{X}{2Y} - \dfrac{u}{2}$, and
-$w = 2Y$. Or in the other direction, $X = \dfrac{w}{2}(u+2v)$ and $Y = \dfrac{w}{2}$:
+Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \tfrac{X}{2Y} - \tfrac{u}{2}$, and
+$w = 2Y$. Or in the other direction, $X = \tfrac{w}{2}(u+2v)$ and $Y = \tfrac{w}{2}$:
 * $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
 * We can restate $\psi_u$ in terms of $(v, w)$: $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
@@ -139,17 +139,23 @@ $$
   x_1 & = & v \\
   x_2 & = & -u - v \\
   x_3 & = & u + w^2 \\
-  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a)
+  z   & = & \tfrac{g(x_3)}{w}(u^2 + uv + v^2 + a)
 \end{array}
 $$
 
-* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
+* $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(u\tfrac{\sqrt{-3}-1}{2} - v\right)$.
 
-### 3.2 Full inversion algorithm
+### 3.2 Avoiding computing all inverses
+
+The ElligatorSwift algorithm as stated in Section 1 requires the computation of $F_{0,u}^{-1}(x)$ (the
+set of all $t$ such that $(u, t)$ decode to $x$) in full. This is in fact not necessary.
+
+
+A significant simplification is possible
 
 Using those we can write $F_{0,u}^{-1}(x)$ precisely:
 * First find the set of $(v,w)$ solutions to $\psi_u'(v, w) = x$ (also using the $S_u'$ equation):
-  * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
-* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\dfrac{\sqrt{-3}-1}{2} - v\right)$.
+  * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\tfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\tfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+  * Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \tfrac{-u}{2} \pm \tfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
+* Convert that set of $(v, w)$ solutions to a set of $t$ solutions, using $t = P_u^{'-1}(v, w) = \left(u\tfrac{\sqrt{-3}-1}{2} - v\right)$.
