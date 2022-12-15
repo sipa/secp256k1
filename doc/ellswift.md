@@ -123,8 +123,9 @@ at the verify beginning of the algorithm.
 
 It's not possible that an encoding found through the $x_1$ expression decodes to a valid X coordinate using $x_2$ (which would
 take precedence), for the same reason: if both $x_1$ and $x_2$ decodings were valid, $x_3$ would be valid as well, and thus take
-precedence over both. Because of this, the $g(-u-x)$ being square test is the only test necessary to guarantee the found $t$
-values round-trip back to the input $x$ correctly.
+precedence over both. Because of this, the $g(-u-x)$ being square test for $x_1$ and $x_2$ is the only test necessary to guarantee the found $t$
+values round-trip back to the input $x$ correctly. This is the reason for choosing the $(x_3, x_2, x_1)$ precedence order in the decoder;
+any other order requires more complicated round-trip checks in the encoder.
 
 ### 3.1 Switching to *v, w* coordinates
 
