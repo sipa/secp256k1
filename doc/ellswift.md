@@ -45,9 +45,12 @@ First some definitions:
 Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
 hand must also be square. Thus, out of the three right-hand side factors an even number (*0* or
 *2*) must be non-squares. This implies that exactly *1* or exactly *3* out of
-$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square (unless $z=0$, but that's not possible for
-curves of odd order like `secp256k1`). That means that for any $(x_1,x_2,x_3,z) \in V$,
+$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square. That means that for any $(x_1,x_2,x_3,z) \in V$,
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
+
+One exception to the above rule is the case where $z=0$, implying $g(x)=0$ for one of the $x_\\{1,2,3\\}$.
+However, $g(x)=0$ implies $E$ has a point with Y coordinate $0$, which would have order 2. This is not
+possible for any curve of odd order, like `secp256k1`.
 
 $F_{0,u}(t)$ will now be defined as:
 * Let $(X, Y) = P_u(t)$.
