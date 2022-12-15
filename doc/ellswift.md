@@ -24,7 +24,7 @@ then evaluating $F(u, t)$. Encoding a given $x$ coordinate is conceptually done 
 * Loop:
   * Pick a uniformy random field element $u \neq 0$.
   * Compute the set $L = F_{0,u}^{-1}(x)$ of $t$ values for which $F_{0,u}(t) = x$, which may have *0*, *4*, or *8* elements.
-  * With probability $1 - \frac{\\#L}{8}$, restart the loop.
+  * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
 This is the *ElligatorSwift* algorithm, here given for just X coordinates. An extension to full
@@ -212,7 +212,7 @@ Define $C_{c,u}(x)$ as:
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
 
 Whenever any of the computed square roots don't exist, return $\bot$; that will occur roughly 50% of the time.
-It is not possible for $\frac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because 
+It is not possible for $\dfrac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because 
 $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
