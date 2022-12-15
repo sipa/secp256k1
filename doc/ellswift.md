@@ -194,17 +194,17 @@ We map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=
 Those are then repeated as $c=4$ through $c=7$ for the other sign of $w$ (noting that in each formula, $w$ is a square root of some expression):
 
 Define $C_{c,u}(x)$ as:
-* If $c \& 2$ ($x_1$ and $x_2$ formulas):
+* If $c \\& 2$ ($x_1$ and $x_2$ formulas):
   * If $g(-u-x)$ is square, return $\bot$ ($x_3$ would be valid and take precedence).
-  * If $c \& 1$ ($x_1$ formula) let $v = -u-x$, otherwise let $v = x$.
+  * If $c \\& 1$ ($x_1$ formula) let $v = -u-x$, otherwise let $v = x$.
   * Let $s = \frac{-g(u)}{u^2 + uv + v^2 + a}$ ($s = w^2$ in what follows).
     * $s = 0$ would result in $t=0$ being returned, but cannot occur for odd-ordered curves.
 * Otherwise ($x_3$ formulas):
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$ (this would return in $t=0$ being returned).
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}; return $\bot$ if it doesn't exist.
-  * Let $r' = -r$ if $c \& 1$ (negated $\sqrt$ in $x_3$ formula), let $r' = r$ otherwise.
-  * If $c \& 1$ and $r = r'$ (or $r = 0$), return $\bot$ as otherwise both $x_3$ formulas would be equal.
+  * Let $r' = -r$ if $c \\& 1$ (negated $\sqrt$ in $x_3$ formula), let $r' = r$ otherwise.
+  * If $c \\& 1$ and $r = r'$ (or $r = 0$), return $\bot$ as otherwise both $x_3$ formulas would be equal.
   * Let $v = \frac{r}{2s}-\frac{u}{2}.
-* Let $w = -\sqrt{s}$ if $c \& 4$, $w = \sqrt{s}$ otherwise.
+* Let $w = -\sqrt{s}$ if $c \\& 4$, $w = \sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
