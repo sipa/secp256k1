@@ -193,6 +193,8 @@ the loop can be simplified to only compute one of the inverses instead of all of
 
 This is implemented in `secp256k1_ellswift_xelligatorswift_var`.
 
+### 3.3 Finding the inverse
+
 We map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=3$ to the $x_3$ formula.
 Those are then repeated as $c=4$ through $c=7$ for the other sign of $w$ (noting that in each formula, $w$ is a square root of some expression).
 Define $C_{c,u}(x)$ as:
@@ -222,3 +224,4 @@ There are a few special conditions that only happen with negligible probability,
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
   This is not possible for odd-ordered curves.
 
+This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
