@@ -46,7 +46,7 @@ First some definitions:
 
 **Note**: In the paper:
 * $F_u$ corresponds to $F_{0,u}$ there.
-* $P_u(t)$ corresponds to the pair of functions $X(u, t)$ and $Y(u, t)$ there.
+* $P_u(t)$ corresponds to the pair of functions $X(u, t)$ and $Y(u, t)$ there, the result of which is jointly called $P$.
 * All $S_u$ sets together correspond to $S$ there.
 * All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
 
@@ -143,7 +143,7 @@ any other order requires more complicated round-trip checks in the encoder.
 Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \dfrac{X}{2Y} - \dfrac{u}{2}$, and
 $w = 2Y$. Or in the other direction, $X = \dfrac{w}{2}(u+2v)$ and $Y = \dfrac{w}{2}$:
 * $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
-* $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
+* For $a=0$ curves, $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
 * We can restate $\psi_u$ in terms of $(v, w)$: $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
 $$
@@ -159,9 +159,9 @@ $$
 We can now write the expressions for finding $(v, w)$ given $x$ explicitly, by solving each of the $\\{x_1, x_2, x_3\\}$
 expressions for $v$ and $w$, also using the $S_u'$ equation $w^2 (u^2 + uv + v^2 + a) = -g(u)$ those
 solutions have to satisfy:
-* Assuming $x = x_1$, we find $v = x$ and the $S_u$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-* Assuming $x = x_2$, we find $v = -u-x$ and the $S_u$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and the $S_u$ equations implies $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
+* Assuming $x = x_1$, we find $v = x$ and the $S_u'$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_2$, we find $v = -u-x$ and the $S_u'$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and the $S_u'$ equations implies $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
 
 ### 3.2 Avoiding computing all inverses
 
@@ -182,7 +182,7 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
 Now notice that the order of elements in $T$ doesn't actually matter, as all we do is pick a uniformly
 random element in it, so we don't need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
-we can populate $T$ with the evaluations of those formulas, in order, taking into account:
+we can associate every index in $T$ with one of those formulas, taking into account:
 * Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead.
 * Any formula that returns $t=0$ is made to return $\bot$, as $t=0$ would be turned into $t'=1$ instead.
@@ -191,7 +191,7 @@ we can populate $T$ with the evaluations of those formulas, in order, taking int
 The last two conditions above only occurs with negligible probability for cryptographically-sized curves, but is interesting
 to take into account as they allow exhaustive testing in small groups.
 
-If we define $L = (C_{0,u}(x), C_{1,u}(x), C_{2,u}(x), \ldots, C_{7,u}(x))$, with each $C_{i,u}$ matching one of the formulas,
+If we define $L = (C_{0,u}(x), C_{1,u}(x), \ldots, C_{7,u}(x))$, with each $C_{i,u}$ matching one of the formulas,
 the loop can be simplified to only compute one of the inverses instead of all of them:
 
 * Loop:
@@ -211,19 +211,17 @@ Define $C_{c,u}(x)$ as:
 * If $c \in \\{0, 1, 4, 5\\}$ (for $x_1$ and $x_2$ formulas):
   * If $g(-u-x)$ is square, return $\bot$ (as $x_3$ would be valid and take precedence).
   * If $c \in \\{0, 4\\}$ (the $x_1$ formula) let $v = x$, otherwise let $v = -u-x$ (the $x_2$ formula)
-  * Let $s = \dfrac{-g(u)}{u^2 + uv + v^2 + a}$ (let $s = w^2$ in what follows).
+  * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (let $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
-  * Let $v = \dfrac{r}{2s}-\dfrac{u}{2}$.
+  * Let $v = (r/s - u)/2$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$.
 
 Whenever any of the computed square roots don't exist, return $\bot$; that will occur roughly 50% of the time.
-It is not possible for $\dfrac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because
-$u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would
-have been returned.
+
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
@@ -232,8 +230,45 @@ There are a few special conditions that only happen with negligible probability,
 * If the returned value would be $0$, return $\bot$ instead, as $t=0$ is invalid. For $a=0$ curves this coincides with the
   previous condition, and is thus already excluded.
 * If $c \in \\{3,7\\}$ and $r=0$, return $\bot$ instead as it would mean the two $x_3$ formulas are equal otherwise.
-* If $c \in \\{1,5\\}$ and $u = -2x$, return $\bot$ instead as otherwise the $x_1$ and $x_2$ formulas would be equal.
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
   This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve).
+* It is not necessary to deal with the case of division by zero in $-g(u)/(u^2 + uv + v^2 + a)$ because $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$,
+  which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would have been returned.
+* Similarly, it is not necessary to deal with the $x_1$ and $x_2$ formulas giving the same result (which happens when $u = -2x$),
+  because that too implies $g(-u-x) = g(x)$.
+
+## 3.4 Encoding for odd-ordered *a=0* curves
+
+Put together, $C_{c,u}(x)$ for odd-ordered $a=0$ curves can be implemented as:
+* If $c \in \\{0, 1, 4, 5\\}$ (for $x_1$ and $x_2$ formulas):
+  * If $g(-u-x)$ is square, return $\bot$.
+  * If $c \in \\{0, 4\\}$ let $v = x$, otherwise let $v = -u-x$.
+  * Let $s = (-u^3-b)/(u^2 + uv + v^2)$.
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
+  * Let $s = x-u$.
+  * If $s = 0$, return $\bot$.
+  * Let $r = \sqrt{-s(4u^3 + 4b + 3su^2)};$
+  * If $c \in \\{2, 6\\}$ and $r = 0$, return $\bot$.
+  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
+  * Let $v = (r/s - u)/2$.
+* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
+* Return $w(u(\sqrt{-3}-1)/2 - v)$.
 
 This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
+
+And the x-only ElligatorSwift encoding algorithm is still:
+* Loop:
+  * Pick a uniformly random field element $u \neq 0$.
+  * Pick a uniformly random integer $c$ in $[0,8)$.
+  * Let $t = C_{c,u}(x)$.
+  * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
+
+For the targetted curves, the $T = (C_{0,u}(x), \ldots, C_{7,u}(x))$ induced by the above
+$C_{c,u}$ implementation has the property that it contains every $t$ for which $F_u(t) = x$
+*exactly* once, with the exception of the remapped $u=0$, $t=0$, and $u^3 + b + t^2 = 0$
+cases which happen with negligible probability.
+
+The ElligatorSwift encoding algorithm, given an $x$ on the curve, picks a uniformly random preimage $(u, t)$
+among those for which $F_u(t) = x$. Section 3.2 in the paper proves that the number of such preimages for
+almost all X coordinates on the curve (all but at most 39) is close to two times the field size
+(specifically, it lies in $[2q-22\sqrt{q}-O(1),2q+22\sqrt{q}+O(1)]$, where $q$ is the size of $\mathbb{F}$).
