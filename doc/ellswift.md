@@ -214,7 +214,7 @@ Define $C_{c,u}(x)$ as:
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (let $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))};$
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
   * Let $v = (r/s - u)/2$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
@@ -247,7 +247,7 @@ Put together, $C_{c,u}(x)$ for odd-ordered $a=0$ curves can be implemented as:
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$.
-  * Let $r = \sqrt{-s(4u^3 + 4b + 3su^2)};$
+  * Let $r = \sqrt{-s(4u^3 + 4b + 3su^2)}$
   * If $c \in \\{2, 6\\}$ and $r = 0$, return $\bot$.
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
   * Let $v = (r/s - u)/2$.
