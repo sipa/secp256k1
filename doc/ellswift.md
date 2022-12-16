@@ -308,18 +308,20 @@ For example, using the sign of $Y$, decoding can be done as:
 
 And encoding would be done using a $C_{c,u}(x, y)$ function defined as (excluding the edge-case conditions addressed earlier):
 
-* If $c \in \\{0, 1, 4, 5\\}$:
+* If $c \in \\{0, 1\\}$:
   * If $g(-u-x)$ is square, return $\bot$.
-  * If $c \in \\{0, 4\\}$ let $v = x$, otherwise let $v = -u-x$.
+  * If $c = 0$ let $v = x$, otherwise let $v = -u-x$.
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$.
-* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
+* Otherwise, when $c \in \\{2, 3\\}$:
   * Let $s = x-u$.
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$
-  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
+  * Let $r' = r$ if $c = 2$, let $r' = -r$ otherwise.
   * Let $v = (r'/s - u)/2$.
-* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
+* Let $w = \sqrt{s}$
 * Let $w' = w$ if *sign(w/2) = sign(y)*; let $w' = -w$ otherwise (using the fact that $Y = w/2$).
 * Return $P_u^{'-1}(v, w')$.
+
+Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on that of $y$, rather than on $c$.
 
 In the above $sign$ could be implemented in several ways, such as parity of the integer representation
 of the input field element (for prime-sized fields) or the quadratic residuosity (for fields where
