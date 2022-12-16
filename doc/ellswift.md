@@ -17,13 +17,14 @@ The encoding consists of the concatenation of two (32-byte big endian) encoded f
 and $t$. Together they encode an X coordinate on the curve $x$, or (see further) a full point on
 the curve $Q = (x, y)$.
 
-The mapping from $(u, t)$ to the curve is defined by the function $F(u, t) = F_{0,u}(t)$, where
-$F_0$ will be defined later. Decoding is simply decoding the field elements $u$ and $t$, and
-then evaluating $F(u, t)$. Encoding a given $x$ coordinate is conceptually done as follows:
+**Decoding** consists of decoding the field elements $u$ and $t$ (values above the field size $p$
+are taken modulo $p$), and then evaluating $F_u(t)$, which for every $u$ and $t$ results in a valid
+X coordinate on the curve. The functions $F_u$ will be defined later.
 
+**Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
   * Pick a uniformy random field element $u \neq 0$.
-  * Compute the set $L = F_{0,u}^{-1}(x)$ of $t$ values for which $F_{0,u}(t) = x$, which may have *0*, *4*, or *8* elements.
+  * Compute the set $L = F_u^{-1}(x)$ of $t$ values for which $F_u(t) = x$, which may have *0*, *4*, or *8* elements.
   * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
@@ -33,49 +34,58 @@ $(x, y)$ points will be given later.
 ## 2. The decoding function
 
 First some definitions:
-* Let the curve $E$ be the set of points $(x, y)$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
+* $\mathbb{F}$ is a finite field of characteristic 5 or higher.
+* Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$.
-* $P_u$ is a function from field elements to $S_u$ that will be defined later.
+* $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
+---
+**Note**: In the paper:
+* $F_u$ corresponds to $F_{0,u}$ there.
+* $P_u(t)$ corresponds to the pair of functions $X(u, t)$ and $Y(u, t)$ there.
+* All $S_u$ sets together correspond to $S$ there.
+* All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
+---
+
 Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
-hand must also be square. Thus, out of the three right-hand side factors an even number (*0* or
-*2*) must be non-squares. This implies that exactly *1* or exactly *3* out of
-$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square. That means that for any $(x_1,x_2,x_3,z) \in V$,
+hand must also be square. As the product of two non-squares is a square in $\mathbb{F}$,
+out the three right-hand side factors an even number must be non-squares.
+This implies that exactly *1* or exactly *3* out of
+$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
 
-One exception to the above rule is the case where $z=0$, implying $g(x)=0$ for one of the $x_{\\{1,2,3\\}}$.
+One exception to the above rule is the case where $z=0$, implying $g(x)=0$ for some $x \in \\{x_1, x_2, x_3\\}$.
 However, $g(x)=0$ implies $E$ has a point with Y coordinate $0$, which would have order 2. This is not
 possible for any curve of odd order, like `secp256k1`.
 
-$F_{0,u}(t)$ will now be defined as:
-* Let $(X, Y) = P_u(t)$.
-* Let $(x_1, x_2, x_3, z) = \psi_u(X, Y)$.
-* Return the first element $x$ of $(x_3, x_2, x_1)$ (note the order!) which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
+$F_u(t)$ will now be defined as:
+* Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
+* Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $P_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
 curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
-For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper for $P_u(t)$ (there defined as functions
-$X(u,t)$ and $Y(u,t)$ ).
+For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper.
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
 $$
 \begin{array}{lcl}
-  x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} \\
-  x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} \\
-  x_3 & = & u + 4Y^2 \\
-  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a)
+  x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} && \\
+  x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} && \\
+  x_3 & = & u + 4Y^2 && \\
+  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a) \\
+      & = & \dfrac{-g(u)g(x_3)}{8Y^3}
 \end{array}
 $$
 
 ### 2.1 Decoding for *a=0* curves
 
-So put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
+Put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
 * Let $X = \dfrac{u^3 + b - t^2}{2t}$.
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
 * Return the first of $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
@@ -85,14 +95,16 @@ In the above procedure, there are 3 possible conditions that result in division 
 * $u=0$ yields a division by zero in the computation of $Y$.
 * If $u^3 + b + t^2 = 0$, then $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
 
-In the paper, those divisions by zero all result in infinity being output due to the use of
-projective coordinates. In the `ellswift` module, we avoid these special cases by making sure all
-possible field elements $u$, $t$ map to valid X coordinates. To do so, the following approach is
-used:
+---
+**Note**: In the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
+We wish to avoid the need for callers with this special case.
+---
+
+We make sure these conditions result in valid X coordinates by altering the input in these cases:
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
-* Run the normal decoding algorithm on $(u', t'')$:
+* Run the earlier algorithm on $(u', t'')$:
   * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
   * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
   * Return the first of $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
@@ -101,18 +113,18 @@ This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to 
 
 ## 3. The encoding function
 
-To implement $F_{0,u}^{-1}(x)$, the function to find the set of inverses $t$ for which $F_{0,u}(t) = x$, we reverse the process:
-* For each of the $x_{\\{1,2,3\\}}$ expressions in $\psi_u$, assume $x = x_i$ and solve for all $(X, Y)$ solutions on $S_u$.
+To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for which $F_u(t) = x$, we reverse the process:
+* For each of the $x_i$ (for $i=1{\ldots}3$) expressions in $\psi_u$, assume $x = x_i$ and solve for all $(X, Y)$ solutions on $S_u$.
   * For $x_1$ and $x_2$ there can be two such $(X, Y)$ solutions each.
   * For $x_3$ there can be four such $(X, Y)$ solutions.
-* Compute the set of $t$ values for which $P_u(t) = (X, Y)$ for all these $(X, Y)$ solutions.
-  * For $a=0$ curves, that set consists of $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ applied to all $(X, Y)$.
-* For each of the found $t$ values, verify that $F_{0,u}(t) = x$.
+* Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y)$
+  * For $a=0$ curves, $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$.
+* For each of the found $t$ values, verify that $F_u(t) = x$.
 * Return the remaining $t$ values.
 
-The third step here, verifying that $F_{0,u}(t) = x$, is necessary because for the $t$ values found through the $x_1$ and $x_2$ expressions,
-it is possible that decoding through $x_3$ takes it to a valid X coordinate different from $x$,
-which would take precedence over the $x_1$ or $x_2$ decoding. These $t$ values must be rejected.
+The third step here, verifying that $F_u(t) = x$, is necessary because for the $(X, Y)$ values found through the $x_1$ and $x_2$ expressions,
+it is possible that decoding through $\psi_u(X, Y)$ yields a valid $x_3$ on the curve, which would take precedence over the
+$x_1$ or $x_2$ decoding. These $(X, Y)$ solutions must be rejected.
 
 Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates for any $t$,
 the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is valid must mean that all three are valid.
@@ -135,6 +147,7 @@ any other order requires more complicated round-trip checks in the encoder.
 Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = \dfrac{X}{2Y} - \dfrac{u}{2}$, and
 $w = 2Y$. Or in the other direction, $X = \dfrac{w}{2}(u+2v)$ and $Y = \dfrac{w}{2}$:
 * $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
+* $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
 * We can restate $\psi_u$ in terms of $(v, w)$: $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
 $$
@@ -142,22 +155,21 @@ $$
   x_1 & = & v \\
   x_2 & = & -u - v \\
   x_3 & = & u + w^2 \\
-  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a)
+  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a) \\
+      & = & \dfrac{-g(u)g(x_3)}{w^3}
 \end{array}
 $$
 
-* $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$.
-
-We can now write the expressions for $\psi_u^{'-1}(x)$ explicitly, by solving each of the $x_{\\{1,2,3\\}}$
+We can now write the expressions for finding $(v, w)$ given $x$ explicitly, by solving each of the $\\{x_1, x_2, x_3\\}$
 expressions for $v$ and $w$, also using the $S_u'$ equation $w^2 (u^2 + uv + v^2 + a) = -g(u)$ those
 solutions have to satisfy:
-* Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-* Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
-* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
+* Assuming $x = x_1$, we find $v = x$ and the $S_u$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_2$, we find $v = -u-x$ and the $S_u$ equation implies $w = \pm\sqrt{-\dfrac{g(u)}{u^2 + uv + v^2 + a}}$.
+* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and the $S_u$ equations implies $v = \dfrac{-u}{2} \pm \dfrac{\sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}}{2w^2}$.
 
 ### 3.2 Avoiding computing all inverses
 
-The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_{0,u}^{-1}(x)$ (the
+The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_u^{-1}(x)$ (the
 set of all $t$ such that $(u, t)$ decode to $x$) in full. This is in fact not necessary.
 
 Observe that the procedure of restarting with probability $1 - \dfrac{\\#L}{8}$ and otherwise returning a
@@ -166,20 +178,21 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
 
 * Loop:
   * Pick a uniformly random field element $u \neq 0$.
-  * Compute the set $L = F_{0,u}^{-1}(x)$.
-  * Let $T$ be the array consisting of the elements of $L$, plus $8 - \\#L$ times $\bot$.
+  * Compute the set $L = F_u^{-1}(x)$.
+  * Let $T$ be the 8-element vector consisting of the elements of $L$, plus $8 - \\#L$ times $\\{\bot\\}$.
   * Select a uniformly random $t \in T$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
 Now notice that the order of elements in $T$ doesn't actually matter, as all we do is pick a uniformly
-random element in it. As we have 8 distinct formulas for $\psi_u^{'-1}$ (taking the variants due to $\pm$ into account),
+random element in it, so we don't need to have all $\bot$ values at the end.
+As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can populate $T$ with the evaluations of those formulas, in order, taking into account:
 * Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
-* Any formula that returns $t=0$ is made to return $\bot$, as $t=0$ would be turned into $t'=1$ instead.
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead.
+* Any formula that returns $t=0$ is made to return $\bot$, as $t=0$ would be turned into $t'=1$ instead.
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
-The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
+The last two conditions above only occurs with negligible probability for cryptographically-sized curves, but is interesting
 to take into account as they allow exhaustive testing in small groups.
 
 If we define $L = (C_{0,u}(x), C_{1,u}(x), C_{2,u}(x), \ldots, C_{7,u}(x))$, with each $C_{i,u}$ matching one of the formulas,
@@ -195,7 +208,7 @@ This is implemented in `secp256k1_ellswift_xelligatorswift_var`.
 
 ### 3.3 Finding the inverse
 
-We map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=3$ to the $x_3$ formula.
+To implement $C_{c,u}$, we map $c=0$ to the $x_1$ formula, $c=1$ to the $x_2$ formula, and $c=2$ and $c=3$ to the $x_3$ formula.
 Those are then repeated as $c=4$ through $c=7$ for the other sign of $w$ (noting that in each formula, $w$ is a square root of some expression).
 Define $C_{c,u}(x)$ as:
 
@@ -209,11 +222,12 @@ Define $C_{c,u}(x)$ as:
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
   * Let $v = \dfrac{r}{2s}-\dfrac{u}{2}$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
-* Return $P_u^{'-1}(v, w)$, which is $w\left(\dfrac{\sqrt{-3}-1}{2}u - v\right)$ for $a=0$ curves.
+* Return $P_u^{'-1}(v, w)$.
 
 Whenever any of the computed square roots don't exist, return $\bot$; that will occur roughly 50% of the time.
-It is not possible for $\dfrac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because 
-$u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered.
+It is not possible for $\dfrac{-g(u)}{u^2 + uv + v^2 + a}$ to trigger division by 0 in the $c \in \\{0, 1, 4, 5\\}$ branch, because
+$u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$, which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would
+have been returned.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
