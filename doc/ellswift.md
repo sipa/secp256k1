@@ -44,13 +44,11 @@ First some definitions:
 * $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
----
 **Note**: In the paper:
 * $F_u$ corresponds to $F_{0,u}$ there.
 * $P_u(t)$ corresponds to the pair of functions $X(u, t)$ and $Y(u, t)$ there.
 * All $S_u$ sets together correspond to $S$ there.
 * All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
----
 
 Note that for $V$, the left hand side of the equation $z^2$ is a square, and thus the right
 hand must also be square. As the product of two non-squares is a square in $\mathbb{F}$,
@@ -95,11 +93,8 @@ In the above procedure, there are 3 possible conditions that result in division 
 * $u=0$ yields a division by zero in the computation of $Y$.
 * If $u^3 + b + t^2 = 0$, then $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
 
----
-**Note**:
-In the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
+**Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers with this special case.
----
 
 We make sure these conditions result in valid X coordinates by altering the input in these cases:
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
