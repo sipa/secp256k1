@@ -86,7 +86,7 @@ $$
 Put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
 * Let $X = \dfrac{u^3 + b - t^2}{2t}$.
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
-* Return the first of $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
+* Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
 In the above procedure, there are 3 possible conditions that result in division by zero:
 * $t=0$ yields a division by zero in the computation of $X$ and $Y$.
@@ -103,7 +103,7 @@ We make sure these conditions result in valid X coordinates by altering the inpu
 * Run the earlier algorithm on $(u', t'')$:
   * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
   * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
-  * Return the first of $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
+  * Return the first $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
 
 This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an X coordinate represented as a fraction).
 
