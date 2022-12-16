@@ -14,7 +14,7 @@ paper by Chavez-Saab, Rodrıguez-Henrıquez, and Tibouchi.
   + [3.3 Finding the inverse](#33-finding-the-inverse)
   + [3.4 Encoding for odd-ordered *a=0* curves](#34-encoding-for-odd-ordered--a-0--curves)
 * [4. Encoding and decoding full *(x, y)* coordinates](#4-encoding-and-decoding-full---x--y---coordinates)
-  + [4.1 Full *(x, y)* coordinates for *a=0$ curves](#41-full---x--y---coordinates-for--a-0--curves)
+  + [4.1 Full *(x, y)* coordinates for *a=0* curves](#41-full---x--y---coordinates-for--a-0--curves)
 
 ## 1. Introduction
 
@@ -326,7 +326,7 @@ of the input field element (for prime-sized fields) or the quadratic residuosity
 $-1$ is not square). The choice doesn't matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
 value, and has the property that $-sign(x) = sign(-x)$.
 
-### 4.1 Full *(x, y)* coordinates for *a=0$ curves
+### 4.1 Full *(x, y)* coordinates for *a=0* curves
 
 For $a=0$ curves, there is another option. Note that for those,
 the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y$. Thus, we can use $sign(t)$ to
