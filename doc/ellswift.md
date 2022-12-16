@@ -14,12 +14,12 @@ from and to this format, as well as convenience functions for key generation and
 directly on ellswift-encoded keys.
 
 The encoding consists of the concatenation of two (32-byte big endian) encoded field elements $u$
-and $t$. Together they encode an X coordinate on the curve $x$, or (see further) a full point on
+and $t$. Together they encode an x-coordinate on the curve $x$, or (see further) a full point on
 the curve $Q = (x, y)$.
 
 **Decoding** consists of decoding the field elements $u$ and $t$ (values above the field size $p$
 are taken modulo $p$), and then evaluating $F_u(t)$, which for every $u$ and $t$ results in a valid
-X coordinate on the curve. The functions $F_u$ will be defined later.
+x-coordinate on the curve. The functions $F_u$ will be defined later.
 
 **Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
@@ -28,7 +28,7 @@ X coordinate on the curve. The functions $F_u$ will be defined later.
   * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
-This is the *ElligatorSwift* algorithm, here given for just X coordinates. An extension to full
+This is the *ElligatorSwift* algorithm, here given for just x-coordinates. An extension to full
 $(x, y)$ points will be given later.
 
 ## 2. The decoding function
@@ -55,15 +55,15 @@ hand must also be square. As the product of two non-squares is a square in $\mat
 out the three right-hand side factors an even number must be non-squares.
 This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
-at least one of $\\{x_1, x_2, x_3\\}$ must be a valid X coordinate on $E$.
+at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$.
 
 One exception to the above rule is the case where $z=0$, implying $g(x)=0$ for some $x \in \\{x_1, x_2, x_3\\}$.
-However, $g(x)=0$ implies $E$ has a point with Y coordinate $0$, which would have order 2. This is not
+However, $g(x)=0$ implies $E$ has a point with y-coordinate $0$, which would have order 2. This is not
 possible for any curve of odd order, like `secp256k1`.
 
 $F_u(t)$ will now be defined as:
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
-* Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid X coordinate on $E$ (i.e., $g(x)$ is square).
+* Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
 The function $P_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
 curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
@@ -83,7 +83,7 @@ $$
 
 ### 2.1 Decoding for *a=0* curves
 
-Put together, decoding $(u, t)$ to an X coordinate for $a=0$ curves corresponds to just:
+Put together, decoding $(u, t)$ to an x-coordinate for $a=0$ curves corresponds to just:
 * Let $X = \dfrac{u^3 + b - t^2}{2t}$.
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
@@ -96,7 +96,7 @@ In the above procedure, there are 3 possible conditions that result in division 
 **Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers with this special case.
 
-We make sure these conditions result in valid X coordinates by altering the input in these cases:
+We make sure these conditions result in valid x-coordinates by altering the input in these cases:
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
@@ -105,7 +105,7 @@ We make sure these conditions result in valid X coordinates by altering the inpu
   * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
   * Return the first $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
 
-This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an X coordinate represented as a fraction).
+This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an x-coordinate represented as a fraction).
 
 ## 3. The encoding function
 
@@ -122,7 +122,7 @@ The third step here, verifying that $F_u(t) = x$, is necessary because for the $
 it is possible that decoding through $\psi_u(X, Y)$ yields a valid $x_3$ on the curve, which would take precedence over the
 $x_1$ or $x_2$ decoding. These $(X, Y)$ solutions must be rejected.
 
-Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid X coordinates for any $t$,
+Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid x-coordinates for any $t$,
 the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is valid must mean that all three are valid.
 This means that instead of checking whether $x_3$ is on the curve, it is also possible to check the other one out of
 $x_1$ and $x_2$ is on the curve. This is significantly simpler, as it turns out.
@@ -132,7 +132,7 @@ $-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one ca
 and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be computed
 at the verify beginning of the algorithm.
 
-It's not possible that an encoding found through the $x_1$ expression decodes to a different valid X coordinate using $x_2$ (which would
+It's not possible that an encoding found through the $x_1$ expression decodes to a different valid x-coordinate using $x_2$ (which would
 take precedence), for the same reason: if both $x_1$ and $x_2$ decodings were valid, $x_3$ would be valid as well, and thus take
 precedence over both. Because of this, the $g(-u-x)$ being square test for $x_1$ and $x_2$ is the only test necessary to guarantee the found $t$
 values round-trip back to the input $x$ correctly. This is the reason for choosing the $(x_3, x_2, x_1)$ precedence order in the decoder;
@@ -237,7 +237,7 @@ There are a few special conditions that only happen with negligible probability,
 * Similarly, it is not necessary to deal with the $x_1$ and $x_2$ formulas giving the same result (which happens when $u = -2x$),
   because that too implies $g(-u-x) = g(x)$.
 
-## 3.4 Encoding for odd-ordered *a=0* curves
+### 3.4 Encoding for odd-ordered *a=0* curves
 
 Put together, $C_{c,u}(x)$ for odd-ordered $a=0$ curves can be implemented as:
 * If $c \in \\{0, 1, 4, 5\\}$ (for $x_1$ and $x_2$ formulas):
@@ -270,5 +270,69 @@ cases which happen with negligible probability.
 
 The ElligatorSwift encoding algorithm, given an $x$ on the curve, picks a uniformly random preimage $(u, t)$
 among those for which $F_u(t) = x$. Section 3.2 in the paper proves that the number of such preimages for
-almost all X coordinates on the curve (all but at most 39) is close to two times the field size
+almost all x-coordinates on the curve (all but at most 39) is close to two times the field size
 (specifically, it lies in $[2q-22\sqrt{q}-O(1),2q+22\sqrt{q}+O(1)]$, where $q$ is the size of $\mathbb{F}$).
+
+## 4. Encoding and decoding full *(x, y)* coordinates
+
+So far we have only addressed encoding and decoding x-coordinates, but in some cases an encoding
+for full points with $(x, y)$ coordinates is desirable. It is possible to encode this information
+in $t$ as well.
+
+Note that for any $(X, Y) \in S_u$, $(\pm X, \pm Y)$ are all on $S_u$. Moreover, all of these are
+mapped to the same x-coordinate. Negating $X$ or negating $Y$ just results in $x_1$ and $x_2$
+being swapped, and doesn't affect $x_3$. This won't change the outcome x-coordinate as the order
+of $x_1$ and $x_2$ only matters if both were to be valid, in which case $x_3$ would be used instead.
+
+Still, these four $(X, Y)$ combinations all correspond to distinct $t$ values, so we can encode
+the sign of the y-coordinate in the sign of $X$ or the sign of $Y$.
+
+**Note**: In the paper, the sign of the y coordinate is encoded in a separately-coded bit.
+
+For example, using the sign of $Y$, decoding can be done as:
+* Let $(X, Y) = P_u(t)$.
+* Let $x$ be the first value in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
+* Let $y = \sqrt{g(x)}$.
+* If $sign(y) = sign(Y)$, return $(x, y)$; otherwise return $(x, -y)$.
+
+And encoding would be done using a $C_{c,u}(x, y)$ function defined as (excluding the edge-case conditions addressed earlier):
+
+* If $c \in \\{0, 1, 4, 5\\}$:
+  * If $g(-u-x)$ is square, return $\bot$.
+  * If $c \in \\{0, 4\\}$ let $v = x$, otherwise let $v = -u-x$.
+  * Let $s = -g(u)/(u^2 + uv + v^2 + a)$.
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
+  * Let $s = x-u$.
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$
+  * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
+  * Let $v = (r'/s - u)/2$.
+* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
+* Let $w' = w$ if *sign(w/2) = sign(y)*; let $w' = -w$ otherwise (using the fact that $Y = w/2$).
+* Return $P_u^{'-1}(v, w')$.
+
+In the above $sign$ could be implemented in several ways, such as parity of the integer representation
+of the input field element (for prime-sized fields) or the quadratic residuosity (for fields where
+$-1$ is not square). The choice doesn't matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
+value, and has the property that $-sign(x) = sign(-x)$.
+
+### 4.1 Full *(x, y)* coordinates for *a=0$ curves
+
+For $a=0$ curves, there is another option. Note that for those,
+the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y$. Thus, we can use $sign(t)$ to
+encode the y-coordinate. Combined with the earlier remapping to guarantee all inputs land on the curve, we get
+as decoder:
+
+* Let $u'=u$ unless $u=0$, in which case $u'=1$.
+* Let $t'=t$ unless $t=0$, in which case $t'=1$.
+* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$.
+* Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
+* Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
+* Let $x$ be the first element of $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
+* Let $y = \sqrt{g(x)}$.
+* If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y)$.
+
+This is implemented in `secp256k1_ellswift_swiftec_var`.
+
+The corresponding encoder would invoke the x-only one, but negating the output $t$ if $sign(t) \neq sign(y)$.
+
+This is implemented in `secp256k1_ellswift_elligatorswift_var`.
