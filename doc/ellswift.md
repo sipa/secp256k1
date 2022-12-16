@@ -216,7 +216,7 @@ Define $C_{c,u}(x)$ as:
   * Let $s = x-u$.
   * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
-  * Let $v = (r/s - u)/2$.
+  * Let $v = (r'/s - u)/2$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $P_u^{'-1}(v, w)$.
 
@@ -250,7 +250,7 @@ Put together, $C_{c,u}(x)$ for odd-ordered $a=0$ curves can be implemented as:
   * Let $r = \sqrt{-s(4u^3 + 4b + 3su^2)}$
   * If $c \in \\{2, 6\\}$ and $r = 0$, return $\bot$.
   * Let $r' = r$ if $c \in \\{2, 6\\}$, let $r' = -r$ otherwise.
-  * Let $v = (r/s - u)/2$.
+  * Let $v = (r'/s - u)/2$.
 * Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
 * Return $w(u(\sqrt{-3}-1)/2 - v)$.
 
