@@ -96,7 +96,8 @@ In the above procedure, there are 3 possible conditions that result in division 
 * If $u^3 + b + t^2 = 0$, then $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
 
 ---
-**Note**: In the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
+**Note**:
+In the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers with this special case.
 ---
 
