@@ -7,14 +7,14 @@ paper by Chavez-Saab, Rodrıguez-Henrıquez, and Tibouchi.
 
 * [1. Introduction](#1-introduction)
 * [2. The decoding function](#2-the-decoding-function)
-  + [2.1 Decoding for *a=0* curves](#21-decoding-for--a-0--curves)
+  + [2.1 Decoding for *a=0* curves](#21-decoding-for-a0--curves)
 * [3. The encoding function](#3-the-encoding-function)
-  + [3.1 Switching to *v, w* coordinates](#31-switching-to--v--w--coordinates)
+  + [3.1 Switching to *v, w* coordinates](#31-switching-to-v-w-coordinates)
   + [3.2 Avoiding computing all inverses](#32-avoiding-computing-all-inverses)
   + [3.3 Finding the inverse](#33-finding-the-inverse)
-  + [3.4 Encoding for odd-ordered *a=0* curves](#34-encoding-for-odd-ordered--a-0--curves)
-* [4. Encoding and decoding full *(x, y)* coordinates](#4-encoding-and-decoding-full---x--y---coordinates)
-  + [4.1 Full *(x, y)* coordinates for *a=0* curves](#41-full---x--y---coordinates-for--a-0--curves)
+  + [3.4 Encoding for odd-ordered *a=0* curves](#34-encoding-for-odd-ordered-a0--curves)
+* [4. Encoding and decoding full *(x, y)* coordinates](#4-encoding-and-decoding-full-x-y-coordinates)
+  + [4.1 Full *(x, y)* coordinates for *a=0* curves](#41-full-x-y-coordinates-for-a0-curves)
 
 ## 1. Introduction
 
