@@ -117,7 +117,7 @@ We make sure these conditions result in valid x-coordinates by altering the inpu
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
-* Run the earlier algorithm on $(u', t'') instead of $(u, t)$.
+* Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
 
 This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an x-coordinate represented as a fraction), and
 in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
