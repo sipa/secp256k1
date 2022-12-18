@@ -35,7 +35,7 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
 **Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
   * Pick a uniformy random field element $u$.
-  * Compute the set $L = F_u^{-1}(x)$ of $t$ values for which $F_u(t) = x$, which may have *0*, *4*, or *8* elements.
+  * Compute the set $L = F_u^{-1}(x)$ of $t$ values for which $F_u(t) = x$, which may have up to *8* elements.
   * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
