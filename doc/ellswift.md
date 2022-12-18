@@ -34,7 +34,7 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
 
 **Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
-  * Pick a uniformy random field element $u \neq 0$.
+  * Pick a uniformy random field element $u$.
   * Compute the set $L = F_u^{-1}(x)$ of $t$ values for which $F_u(t) = x$, which may have *0*, *4*, or *8* elements.
   * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
@@ -186,7 +186,7 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u \neq 0$.
+  * Pick a uniformly random field element $u$.
   * Compute the set $L = F_u^{-1}(x)$.
   * Let $T$ be the 8-element vector consisting of the elements of $L$, plus $8 - \\#L$ times $\\{\bot\\}$.
   * Select a uniformly random $t \in T$.
@@ -340,7 +340,7 @@ To encode the sign of $y$ in the sign of $Y$:
 * Let $y = \sqrt{g(x)}$.
 * If $sign(y) = sign(Y)$, return $(x, y)$; otherwise return $(x, -y)$.
 
-And encoding would be done using a $G_{c,u}(x, y)$ function defined as (excluding the edge-case conditions addressed earlier):
+And encoding would be done using a $G_{c,u}(x, y)$ function defined as:
 
 **Define** $G_{c,u}(x, y)$ as:
 * If $c \in \\{0, 1\\}$:
@@ -381,7 +381,7 @@ as decoder:
 * Let $y = \sqrt{g(x)}$.
 * If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y)$.
 
-This is implemented in `secp256k1_ellswift_swiftec_var`.
+This is implemented in `secp256k1_ellswift_swiftec_var`. The used $sign(x)$ function is the parity of $x$ when represented as in integer in $[0,q)$.
 
 The corresponding encoder would invoke the x-only one, but negating the output $t$ if $sign(t) \neq sign(y)$.
 
