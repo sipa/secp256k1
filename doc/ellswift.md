@@ -125,7 +125,7 @@ in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
 ## 3. The encoding function
 
 To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for which $F_u(t) = x$, we have to reverse the process:
-* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1$, $x_2$, and $x_3$ formulas in $\psi_u$.
+* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1$, $x_2$, or $x_3$ formulas in $\psi_u$.
 * Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y)$
   * For $a=0$ curves, $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$.
 * For each of the found $t$ values, verify that $F_u(t) = x$.
@@ -178,9 +178,9 @@ expressions for $v$ or $w$, and using the $S_u'$ equation to find the other vari
 ### 3.2 Avoiding computing all inverses
 
 The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_u^{-1}(x)$ (the
-set of all $t$ such that $(u, t)$ decode to $x$) in full. This is in fact not necessary.
+set of all $t$ such that $(u, t)$ decode to $x$) in full. This is unnecessary.
 
-Observe that the procedure of restarting with probability $1 - \dfrac{\\#L}{8}$ and otherwise returning a
+Observe that the procedure of restarting with probability $(1 - \frac{\\#L}{8})$ and otherwise returning a
 uniformly random element from $L$ is actually equivalent to always padding $L$ with $\bot$ values up to length 8,
 picking a uniformly random element from that, restarting whenever $\bot$ is picked:
 
@@ -192,7 +192,7 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
   * Select a uniformly random $t \in T$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
-Now notice that the order of elements in $T$ doesn't actually matter, as all we do is pick a uniformly
+Now notice that the order of elements in $T$ doesn't matter, as all we do is pick a uniformly
 random element in it, so we don't need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
@@ -229,9 +229,8 @@ Ignoring the negligible cases, we get:
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$ (as that would cause division by zero below).
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$. Return $\bot$ if $\sqrt{}$ fails.
-  * Let $r' = r$ if $c \in \\{3, 7\\}$, let $r' = -r$ otherwise.
-  * Let $v = (r'/s - u)/2$.
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$; return $\bot$ if $\sqrt{}$ fails.
+  * Let $v = (r/s - u)/2$ if $c \in \\{3, 7\\}$; $(-r/s - u)/2$ otherwise.
 * Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
 * Depending on $c$:
   * If $c \in \\{0, 1, 2, 3\\}$: return $P_u^{'-1}(v, w)$.
@@ -239,6 +238,10 @@ Ignoring the negligible cases, we get:
 
 It is not necessary to deal with the case of division by zero in $-g(u)/(u^2 + uv + v^2 + a)$ because $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$,
 which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would have been returned.
+
+**Note**: In the paper, the $case$ variable corresponds roughly to the $c$ above, but only takes on 4 possible values (1 to 4).
+The conditional negation of $w$ at the end is done randomly, which is equivalent, but makes testing harder. We choose to
+have the $G_{c,u}$ be deterministic, and capture all choices in $c$.
 
 Now observe that the $c \in \\{1, 5\\}$ and $c \in \\{3, 7\\}$ conditions effectively perform the same $v \rightarrow -u-v$
 transformation. Furthermore, that transformation has no effect on $s$ in the first branch
@@ -260,12 +263,13 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
   * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, w)$.
   * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
-This shows very clearly how there can only be 0, 4, or 8 $t$ values that are not $\bot$: there can be 0, 1, or 2
-$(v, w)$ pairs before invoking $P_u^{'-1}$, and each gives rises to 4 distinct $t$ values.
+This shows clearly how there can only be 0, 4, or 8 $t$ values that are not $\bot$: there can be 0, 1, or 2
+$(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
-  This is equivalent to $s=0$, and on odd-ordered curves can only happen in the $c \in \\{6, 7\}}$ case as in the other case it requires $g(u) = 0$.
+  This is equivalent to $s=0$, which in the $c \in \\{6,7\\}$ case is already covered as it would lead to division by zero.
+  In the $c \in \\{4,5\\}$ case it is equivalent to $g(u) = 0$, which can only happen on even-ordered curves.
 * If $c \in \\{1,3,5,7\\}$ and $u + 2v = 0$, return $\bot$ instead as otherwise the odd and even $c$ expressions would return the same thing. This
   corresponds to either the two $x_3$ formulas yielding the same result, or the $x_1$ and $x_2$ formulas yielding the same result.
   The latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would have failed already.
@@ -278,13 +282,14 @@ Adding those conditions to the algorithm:
 * If $c \in \\{0, 1, 4, 5\\}$:
   * If $g(-u-x)$ is square, return $\bot$
   * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
+  * If $c \in \\{4, 5\\}$ and $s=0$, return $\bot$.
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * If $g(x) = 0$, return $\bot$.
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$.
   * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
-  * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
+  * If $c in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
 * Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
@@ -304,10 +309,14 @@ Specialized for odd-ordered $a=0$ curves:
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
-  * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
-* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, let $w = -\sqrt{s}$ otherwise.
-* If $c \in \\{1, 3, 5, 7\\}$ return $w(u(\sqrt{-3}-1)/2 - v)$; otherwise return $w(u(\sqrt{-3}+1)/2 + v)$.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
+  * If $c in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
+* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Depending on $c$:
+  * If $c \in \\{0, 2\\}$: return $w(\frac{\sqrt{-3}-1}{2}u - v)$.
+  * If $c \in \\{1, 3\\}$: return $w(\frac{\sqrt{-3}+1}{2}u + v)$.
+  * If $c \in \\{4, 6\\}$: return $w(\frac{-\sqrt{-3}+1}{2}u + v)$.
+  * If $c \in \\{5, 7\\}$: return $w(\frac{-\sqrt{-3}-1}{2}u - v)$.
 
 This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
 
@@ -337,15 +346,16 @@ being swapped, and doesn't affect $x_3$. This won't change the outcome x-coordin
 of $x_1$ and $x_2$ only matters if both were to be valid, in which case $x_3$ would be used instead.
 
 Still, these four $(X, Y)$ combinations all correspond to distinct $t$ values, so we can encode
-the sign of the y-coordinate in the sign of $X$ or the sign of $Y$.
+the sign of the y-coordinate in the sign of $X$ or the sign of $Y$. They correspond to the
+four distinct $P_u^{'-1}$ calls in the definition of $G_{u,c}$.
 
 **Note**: In the paper, the sign of the y coordinate is encoded in a separately-coded bit.
 
-For example, using the sign of $Y$, decoding can be done as:
+To encode the sign of $y$ in the sign of $Y$:
 
 **Define** *Decode(u, t)* for full $(x, y)$ as:
 * Let $(X, Y) = P_u(t)$.
-* Let $x$ be the first value in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
+* Let $x$ be the first value in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ for which $g(x)$ is square.
 * Let $y = \sqrt{g(x)}$.
 * If $sign(y) = sign(Y)$, return $(x, y)$; otherwise return $(x, -y)$.
 
@@ -358,10 +368,13 @@ And encoding would be done using a $G_{c,u}(x, y)$ function defined as (excludin
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
-* Let $w = \sqrt{s}$.
-* Let $w' = w$ if *sign(w/2) = sign(y)*; let $w' = -w$ otherwise (using the fact that $Y = w/2$).
-* If $c \in \\{1, 3\\}$ return $P_u^{'-1}(v, w)$; otherwise return $P_u^{'-1}(-u-v, w)$.
+  * If $s = 0$, return $\bot$.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
+* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Let $w' = w$ if $sign(w/2) = sign(y)$; otherwise $w' = -w$.
+* Depending on $c$:
+  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w')$.
+  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w')$.
 
 Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on that of $y$, rather than on $c$.
 
@@ -383,7 +396,7 @@ as decoder:
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$.
 * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
 * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
-* Let $x$ be the first element of $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $g(x)$ is square.
+* Let $x$ be the first element of $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
 * Let $y = \sqrt{g(x)}$.
 * If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y)$.
 
