@@ -208,7 +208,7 @@ the loop can be simplified to only compute one of the inverses instead of all of
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u \neq 0$.
+  * Pick a uniformly random field element $u$.
   * Pick a uniformly random integer $c$ in $[0,8)$.
   * Let $t = G_{c,u}(x)$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
@@ -260,7 +260,7 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
   * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
-  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
   * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
 This shows clearly how there can only be 0, 4, or 8 $t$ values that are not $\bot$: there can be 0, 1, or 2
@@ -274,34 +274,15 @@ There are a few special conditions that only happen with negligible probability,
   corresponds to either the two $x_3$ formulas yielding the same result, or the $x_1$ and $x_2$ formulas yielding the same result.
   The latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would have failed already.
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
-  This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve)
-
-Adding those conditions to the algorithm:
-
-**Define** $G_{c,u}(x)$ as:
-* If $c \in \\{0, 1, 4, 5\\}$:
-  * If $g(-u-x)$ is square, return $\bot$
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
-  * If $c \in \\{4, 5\\}$ and $s=0$, return $\bot$.
-  * Let $v = x$.
-* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
-  * If $g(x) = 0$, return $\bot$.
-  * Let $s = x-u$.
-  * If $s = 0$, return $\bot$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
-  * If $c in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
-* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
-* Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
-  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
-  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, w)$.
-  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
+  This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve).
+* On $a=0$ curves, $u=0$ is not a valid input.
 
 ### 3.4 Encoding for odd-ordered *a=0* curves
 
 Specialized for odd-ordered $a=0$ curves:
 
 **Define** $G_{c,u}(x)$ as:
+* If $u=0$, return $\bot$.
 * If $c \in \\{0, 1, 4, 5\\}$:
   * If $g(-u-x)$ is square, return $\bot$
   * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
@@ -324,7 +305,7 @@ And the x-only ElligatorSwift encoding algorithm is still:
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u \neq 0$.
+  * Pick a uniformly random field element $u$.
   * Pick a uniformly random integer $c$ in $[0,8)$.
   * Let $t = G_{c,u}(x)$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
