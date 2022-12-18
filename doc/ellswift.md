@@ -263,8 +263,8 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
   * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
   * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
-This shows clearly how there can only be 0, 4, or 8 $t$ values that are not $\bot$: there can be 0, 1, or 2
-$(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
+This shows there will be almost always 0, 4, or 8 $t$ values for a given $(u, x)$ input.
+There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
