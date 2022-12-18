@@ -198,11 +198,10 @@ As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to 
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
 * Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead (the round-trip check).
-* Any formula that returns $t=0$ is made to return $\bot$, as $t=0$ would be turned into $t'=1$ instead.
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
-The last two conditions above only occur with negligible probability for cryptographically-sized curves, but are interesting
-to take into account as they allow exhaustive testing in small groups.
+The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
+to take into account as it allows exhaustive testing in small groups.
 
 If we define $L = (G_{0,u}(x), G_{1,u}(x), \ldots, G_{7,u}(x))$, with each $G_{i,u}$ matching one of the formulas,
 the loop can be simplified to only compute one of the inverses instead of all of them:
@@ -229,40 +228,49 @@ Ignoring the negligible cases, we get:
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (using $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$
+  * If $s = 0$, return $\bot$ (as that would cause division by zero below).
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$. Return $\bot$ if $\sqrt{}$ fails.
   * Let $r' = r$ if $c \in \\{3, 7\\}$, let $r' = -r$ otherwise.
   * Let $v = (r'/s - u)/2$.
-* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, $w = -\sqrt{s}$ otherwise.
-* Return $P_u^{'-1}(v, w)$.
+* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Depending on $c$:
+  * If $c \in \\{0, 1, 2, 3\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{4, 5, 6, 7\\}$: return $P_u^{'-1}(v, -w)$.
 
-Whenever any of the computed square roots don't exist, return $\bot$; that will occur roughly 50% of the time.
+It is not necessary to deal with the case of division by zero in $-g(u)/(u^2 + uv + v^2 + a)$ because $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$,
+which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would have been returned.
 
-Now observe that negating $r$ has the same effect on $v$ as going from $x$ to $-u-x$ has. Furthermore, that transformation
-has no effect on $s$ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus, the following simplification is possible:
+Now observe that the $c \in \\{1, 5\\}$ and $c \in \\{3, 7\\}$ conditions effectively perform the same $v \rightarrow -u-v$
+transformation. Furthermore, that transformation has no effect on $s$ in the first branch
+as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it out and move it down:
 
 **Define** $G_{c,u}(x)$ as:
 * If $c \in \\{0, 1, 4, 5\\}$:
-  * If $g(-u-x)$ is square, return $\bot$
+  * If $g(-u-x)$ is square, return $\bot$.
   * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
-* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, let $w = -\sqrt{s}$ otherwise.
-* If $c \in \\{1, 3, 5, 7\\}$ return $P_u^{'-1}(v, w)$; otherwise return $P_u^{'-1}(-u-v, w)$.
+  * If $s = 0$, return $\bot$.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
+* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Depending on $c$:
+  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
+  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
+
+This shows very clearly how there can only be 0, 4, or 8 $t$ values that are not $\bot$: there can be 0, 1, or 2
+$(v, w)$ pairs before invoking $P_u^{'-1}$, and each gives rises to 4 distinct $t$ values.
 
 There are a few special conditions that only happen with negligible probability, and could be dealt with:
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
   This is equivalent to $s=0$, and on odd-ordered curves can only happen in the $c \in \\{6, 7\}}$ case as in the other case it requires $g(u) = 0$.
-* If the returned value would be $0$, return $\bot$ instead, as $t=0$ is invalid. For $a=0$ curves this coincides with the
-  previous condition, and is thus already excluded.
 * If $c \in \\{1,3,5,7\\}$ and $u + 2v = 0$, return $\bot$ instead as otherwise the odd and even $c$ expressions would return the same thing. This
   corresponds to either the two $x_3$ formulas yielding the same result, or the $x_1$ and $x_2$ formulas yielding the same result.
-  In fact, the latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would fail.
+  The latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would have failed already.
 * If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
   This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve)
-* It is not necessary to deal with the case of division by zero in $-g(u)/(u^2 + uv + v^2 + a)$ because $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$,
-  which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would have been returned.
 
 Adding those conditions to the algorithm:
 
@@ -274,12 +282,15 @@ Adding those conditions to the algorithm:
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * If $g(x) = 0$, return $\bot$.
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+  * If $s = 0$, return $\bot$.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
   * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
-* If $c \in \\{4, 5, 6, 7\\}$ and $s=0$, return $\bot$.
-* Let $w = \sqrt{s}$ if $c \in \\{0, 1, 2, 3\\}$, let $w = -\sqrt{s}$ otherwise.
-* If $c \in \\{1, 3, 5, 7\\}$ let $t = P_u^{'-1}(v, w)$; otherwise let $t = P_u^{'-1}(-u-v, w)$.
-* If $t = 0$, return $\bot$, otherwise return $t$.
+* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Depending on $c$:
+  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
+  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
 ### 3.4 Encoding for odd-ordered *a=0* curves
 
