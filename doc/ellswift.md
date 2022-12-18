@@ -49,7 +49,7 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 
 First some definitions:
 * $\mathbb{F}$ is the finite field of size $q$ (with characteristic 5 or higher).
-  * For `secp256k1`, $q = 2^{256} - 2^32 - 977$.
+  * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
 * Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants.
   * For `secp256k1`, $a=0$ and $b=7$.
