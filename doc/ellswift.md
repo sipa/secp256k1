@@ -137,7 +137,7 @@ $x_1$ or $x_2$ decoding. These $(X, Y)$ solutions must be rejected.
 
 Since we know that exactly one or exactly three out of $\\{x_1, x_2, x_3\\}$ are valid x-coordinates for any $t$,
 the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is valid must mean that all three are valid.
-This means that instead of checking whether $x_3$ is on the curve, it is also possible to check the other one out of
+This means that instead of checking whether $x_3$ is on the curve, it is also possible to check whether the other one out of
 $x_1$ and $x_2$ is on the curve. This is significantly simpler, as it turns out.
 
 Observe that $\psi_u$ guarantees that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
