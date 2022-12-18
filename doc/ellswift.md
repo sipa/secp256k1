@@ -291,7 +291,7 @@ Specialized for odd-ordered $a=0$ curves:
   * Let $s = x-u$.
   * If $s = 0$, return $\bot$.
   * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
-  * If $c in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
+  * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
 * Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $w(\frac{\sqrt{-3}-1}{2}u - v)$.
