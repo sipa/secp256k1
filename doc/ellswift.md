@@ -55,8 +55,8 @@ First some definitions:
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
-* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$.
-* $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
+* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$ where $Y \neq 0$.
+* For almost every $u$, $P_u$ is a function from almost all of $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 **Note**: In the paper:
@@ -72,8 +72,8 @@ This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$.
 
-The one exception to the above rule is the case where $z=0$, implying $g(x)=0$ for some $x \in \\{x_1, x_2, x_3\\}$.
-However, $g(x)=0$ implies $E$ has a point with y-coordinate $0$, which would have order 2. This is not
+The one exception to the above rule is the case where $g(x_1)=0$ and $g(x_2)=0$, but $g(x_3) \neq 0$.
+This requires a point with y-coordinate *0* on the curve, which would have order 2. This is not
 possible for any curve of odd order, like `secp256k1`.
 
 **Define** $F_u(t)$ as:
@@ -105,10 +105,10 @@ Put together, decoding $(u, t)$ to an x-coordinate for $a=0$ curves corresponds 
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
-In the above procedure, there are 3 possible conditions that result in division by zero:
+In the above procedure, there are 3 possible conditions that give undefined results:
 * $t=0$ yields a division by zero in the computation of $X$ and $Y$.
 * $u=0$ yields a division by zero in the computation of $Y$.
-* If $u^3 + b + t^2 = 0$, then $Y=0$, which results in a division by zero in the computation of $x_1$, $x_2$, and $z$.
+* If $u^3 + b + t^2 = 0$, then $Y=0$, which isn't valid on $S_u$.
 
 **Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers to deal with this special case.
@@ -155,7 +155,7 @@ any other order requires more complicated round-trip checks in the encoder.
 
 Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = (X/Y - u)/2$, and
 $w = 2Y$. Or in the other direction, $X = uw/2 + vw$ and $Y = w/2$:
-* $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$.
+* $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$ and $w \neq 0$.
 * For $a=0$ curves, $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\frac{\sqrt{-3}-1}{2}u - v\right)$.
 * $\psi_u$ can be stated for $(v, w)$ as $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
@@ -228,16 +228,18 @@ Ignoring the negligible cases, we get:
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (using $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
-  * If $s = 0$, return $\bot$ (as that would cause division by zero below).
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$; return $\bot$ if $\sqrt{}$ fails.
+  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$.
   * Let $v = (r/s - u)/2$ if $c \in \\{3, 7\\}$; $(-r/s - u)/2$ otherwise.
-* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Let $w = \sqrt{s}$.
 * Depending on $c$:
   * If $c \in \\{0, 1, 2, 3\\}$: return $P_u^{'-1}(v, w)$.
   * If $c \in \\{4, 5, 6, 7\\}$: return $P_u^{'-1}(v, -w)$.
 
-It is not necessary to deal with the case of division by zero in $-g(u)/(u^2 + uv + v^2 + a)$ because $u^2 + uv + v^2 + a = 0$ implies $g(-u-x) = g(x)$,
-which means the $g(-u-x)$ is square condition would have triggered and $\bot$ would have been returned.
+Whenever a square root of a non-square is taken, $\bot$ is returned; for both square roots this happens with roughly
+50% on random inputs. Similarly, when a division by 0 would occur, $\bot$ is returned as well; this will only happen
+with negligible probability. On curves of odd order $u^2 + uv + v^2 + a \neq 0$, as equality would imply $g(-u-x) = g(x)$
+which would mean the $g(-u-x)$ is square condition has triggered and $\bot$ would have been returned already
+(however, on even-ordered curves it can also be a 0/0 as $g(u) = 0$ is possible).
 
 **Note**: In the paper, the $case$ variable corresponds roughly to the $c$ above, but only takes on 4 possible values (1 to 4).
 The conditional negation of $w$ at the end is done randomly, which is equivalent, but makes testing harder. We choose to
@@ -254,28 +256,31 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * If $s = 0$, return $\bot$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
-* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+* Let $w = \sqrt{s}$.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
   * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
   * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
   * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
-This shows there will be almost always 0, 4, or 8 $t$ values for a given $(u, x)$ input.
+This shows there will always be exactly 0, 4, or 8 $t$ values for a given $(u, x)$ input.
 There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
 
-There are a few special conditions that only happen with negligible probability, and could be dealt with:
+There are a few special conditions that only happen with negligible probability, and could optionally be dealt with:
+* If $g(u) = 0$ then it is possible in the decoder that $g(x_1) = g(x_2) = 0$ while $g(x_3) \neq 0$, which violates the assumption
+  that always either exactly 1 or exactly 3 out of $\\{x_1, x_2, x_3\\}$ are on the curve, which makes them hard to target by
+  the encoder. Note that it's not necessary to outlaw $g(u)=0$ on the decoder side, as $g(x_2)$ will be on the curve.
+  This condition cannot occur on curves of odd order.
 * If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
-  This is equivalent to $s=0$, which in the $c \in \\{6,7\\}$ case is already covered as it would lead to division by zero.
-  In the $c \in \\{4,5\\}$ case it is equivalent to $g(u) = 0$, which can only happen on even-ordered curves.
+  It doesn't need special care, as in the $c \in \\{4,5\\}$ case it's equivalent to $g(u)=0$ which is outlawed above, and
+  in the $c \in \\{6,7\\}$ case it requires $s=0$ which is outlawed because of division by zero already.
 * If $c \in \\{1,3,5,7\\}$ and $u + 2v = 0$, return $\bot$ instead as otherwise the odd and even $c$ expressions would return the same thing. This
   corresponds to either the two $x_3$ formulas yielding the same result, or the $x_1$ and $x_2$ formulas yielding the same result.
   The latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would have failed already.
-* If $c \in \\{2, 3, 6, 7\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas.
-  This is not possible for odd-ordered curves (as it requires a $y=0$ point on the curve).
-* On $a=0$ curves, $u=0$ is not a valid input.
+* If $c \in \\{0, 1, 4, 5\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas,
+  and we have to prefer the $x_3$ formulas. This condition is not possible for odd-ordered curves.
+* Any input for which $P_u^{'-1}$ doesn't exist has to return $\bot$; for $a=0$ curves this happens when $u=0$.
 
 ### 3.4 Encoding for odd-ordered *a=0* curves
 
@@ -285,14 +290,13 @@ Specialized for odd-ordered $a=0$ curves:
 * If $u=0$, return $\bot$.
 * If $c \in \\{0, 1, 4, 5\\}$:
   * If $g(-u-x)$ is square, return $\bot$
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
+  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (note: can't cause division by 0).
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * If $s = 0$, return $\bot$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
   * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
-* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+* Let $w = \sqrt{s}$.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $w(\frac{\sqrt{-3}-1}{2}u - v)$.
   * If $c \in \\{1, 3\\}$: return $w(\frac{\sqrt{-3}+1}{2}u + v)$.
@@ -349,9 +353,8 @@ And encoding would be done using a $G_{c,u}(x, y)$ function defined as:
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3\\}$:
   * Let $s = x-u$.
-  * If $s = 0$, return $\bot$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$; return $\bot$ if $\sqrt{}$ fails.
-* Let $w = \sqrt{s}$; return $\bot$ if $\sqrt{}$ fails.
+  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+* Let $w = \sqrt{s}$.
 * Let $w' = w$ if $sign(w/2) = sign(y)$; otherwise $w' = -w$.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w')$.
