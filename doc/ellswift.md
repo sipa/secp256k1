@@ -91,14 +91,6 @@ It gives a valid result:
 * For $a=0$, unless $u=0$, $t=0$, or $g(u) = -t^2$.
 * For $a \neq 0$, unless $t^2h(u) = -1$ or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$.
 
-The inverse, $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$ is significantly simpler:
-
-$$
-P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
-Yu\sqrt{-3} - X & a = 0 \\
-\dfrac{Y-Y_0}{X-X_0} & a \neq 0
-\end{array}\right.
-$$
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
@@ -125,8 +117,11 @@ To make sure that every input decodes to a valid x-coordinate, we adjust the inp
 $P_u$ fails ($u=0$, $t=0$, or $g(u) = -t^2$):
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
-* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
+* Let $t''=t'$ unless $g(u') = -t'^2$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $g(u') \neq -t'^2$).
 * Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
+
+The choices here aren't strictly necessary. Just returning a fixed constant in any of the invalid cases would suffice,
+but the approach here is simple and give fairly uniform output even in these cases.
 
 **Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers to deal with this special case.
@@ -142,6 +137,15 @@ To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for whi
   * For $a=0$ curves, $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$.
 * For each of the found $t$ values, verify that $F_u(t) = x$.
 * Return the remaining $t$ values.
+
+The function $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$ is significantly simpler than $P_u$:
+
+$$
+P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
+Yu\sqrt{-3} - X & a = 0 \\
+\dfrac{Y-Y_0}{X-X_0} & a \neq 0
+\end{array}\right.
+$$
 
 The third step here, verifying that $F_u(t) = x$, is necessary because for the $(X, Y)$ values found through the $x_1$ and $x_2$ expressions,
 it is possible that decoding through $\psi_u(X, Y)$ yields a valid $x_3$ on the curve, which would take precedence over the
@@ -166,7 +170,7 @@ any other order requires more complicated round-trip checks in the encoder.
 ### 3.1 Switching to *v, w* coordinates
 
 Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = (X/Y - u)/2$, and
-$w = 2Y$. Or in the other direction, $X = uw/2 + vw$ and $Y = w/2$:
+$w = 2Y$. Or in the other direction, $X = w(u/2 + v)$ and $Y = w/2$:
 * $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$ and $w \neq 0$.
 * For $a=0$ curves, $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\frac{\sqrt{-3}-1}{2}u - v\right)$.
 * $\psi_u$ can be stated for $(v, w)$ as $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
@@ -208,12 +212,12 @@ Now notice that the order of elements in $T$ doesn't matter, as all we do is pic
 random element in it, so we don't need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
-* Formulas that yield no solutions, due to division by zero or taking the square root of a non-square, are made to return $\bot$.
+* Formulas that yield no solutions, including due to division by zero or taking the square root of a non-square, are made to return $\bot$.
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead (the round-trip check).
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
 The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
-to take into account as it allows exhaustive testing in small groups.
+to take into account as it allows exhaustive testing in small groups. See Section 3.4 for an analysis of all the negligible cases.
 
 If we define $T = (G_{0,u}(x), G_{1,u}(x), \ldots, G_{7,u}(x))$, with each $G_{i,u}$ matching one of the formulas,
 the loop can be simplified to only compute one of the inverses instead of all of them:
@@ -279,20 +283,36 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
 This shows there will always be exactly 0, 4, or 8 $t$ values for a given $(u, x)$ input.
 There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
 
-There are a few special conditions that only happen with negligible probability, and could optionally be dealt with:
-* If $g(u) = 0$ then it is possible in the decoder that $g(x_1) = g(x_2) = 0$ while $g(x_3) \neq 0$, which violates the assumption
-  that always either exactly 1 or exactly 3 out of $\\{x_1, x_2, x_3\\}$ are on the curve, which makes them hard to target by
-  the encoder. Note that it's not necessary to outlaw $g(u)=0$ on the decoder side, as $g(x_2)$ will be on the curve.
-  This condition cannot occur on curves of odd order.
-* If $c \in \\{4,5,6,7\\}$ and $w=0$, return $\bot$ instead as otherwise the $c < 4$ and $c >= 4$ formulas would yield the same result.
-  It doesn't need special care, as in the $c \in \\{4,5\\}$ case it's equivalent to $g(u)=0$ which is outlawed above, and
-  in the $c \in \\{6,7\\}$ case it requires $s=0$ which is outlawed because of division by zero already.
-* If $c \in \\{1,3,5,7\\}$ and $u + 2v = 0$, return $\bot$ instead as otherwise the odd and even $c$ expressions would return the same thing. This
-  corresponds to either the two $x_3$ formulas yielding the same result, or the $x_1$ and $x_2$ formulas yielding the same result.
-  The latter condition is impossible because it implies $g(-u-x) = g(x)$, which means the roundtrip test would have failed already.
-* If $c \in \\{0, 1, 4, 5\\}$ and $g(x)=0$, return $\bot$ instead as otherwise the $x_3$ formulas would be equal to the $x_1$ or $x_2$ formulas,
-  and we have to prefer the $x_3$ formulas. This condition is not possible for odd-ordered curves.
-* Any input for which $P_u^{'-1}$ doesn't exist has to return $\bot$; for $a=0$ curves this happens when $u=0$.
+### 3.4 Dealing with special cases
+
+As mentioned before there are a few cases to deal which only happen in a negligibly small subset of inputs (besides division by zero).
+For cryptographically sized curves, if only random inputs are going to be considered, it is unnecessary to deal with these. Still, for completeness
+we analyse them here. They generally fall into two categories: cases in which the encoder would produce $t$ values that
+don't decode back to $x$ (or at least can't guarantee they they do), and cases in which the encoder might produce the same
+$t$ value for multiple $c$ inputs (thereby biasing that encoding):
+
+* In the branch for $x_1$ and $x_2$ ($c \in \\{0, 1, 4, 5\\}):
+  * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u$. This is only possible on even-ordered curves.
+    Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
+    (squareness of $g(-u-x)$) fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
+    This does exclude some valid encodings: when both $g(u)=0$ and $u^2+ux+x^2+a=0$ (also implying $g(x)=0$),
+    the division is undefined, and *many* valid $t$ values exist. We still exclude these in the encoder, as there
+    may be more than 8, so they cannot all be mapped to individual $c$ values.
+  * When $g(x) = 0$, the same $t$ would be produced in the $x_3$ branch ($c \in \\{2, 3, 6, 7\\}), which we give precedence.
+    This is again only possible on even-ordered curves.
+* In the branch for $x_3$ ($c \in \\{2, 3, 6, 7\\}):
+  * When $u = -u-v$, the same $t$ would be returned in the $c \in \\{2, 6\\}$ vs. $\\{3, 7\\}$ cases.
+    This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
+    A similar concern for $w = -w$ doesn't exist, as $w=0$ is already impossible in both branches (in the first
+    it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero).
+* On $a=0$ curves:
+  * When $u = 0$, as $S_u$ is not defined then.
+  * When $v = \sqrt{-3}u$, as $t=0$ would be output which is not valid. This condition implies $u^2 + uv + v^2 + a = 0$,
+    and thus requires $g(u)=0$ as otherwise the $S_u'$ equation would not be satisfied. Because of this, it can only
+    occur on even-ordered curves.
+* On $a \neq 0$ curves:
+  * When a $t$ value satisfying $h(u)t^2 = -1$ would be returned, as such inputs aren't valid for $P_u$.
+  * When $X = X_0$, computing $t$ would require a division by 0.
 
 ### 3.4 Encoding for odd-ordered *a=0* curves
 
