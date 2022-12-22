@@ -78,7 +78,7 @@ to this, namely when $z=0$, but even then one of the three values is a valid x-c
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$ for $a \neq 0$ depends on values $X_0$ and $Y_0$, which are functions of $u$ and defined in Appendix A of the paper:
+The function $P_u$ for $a \neq 0$ depends on values $X_0$ and $Y_0$, which are functions of $u$, and defined in Appendix A of the paper.
 
 $$
 P_u(t) = \left\\{\begin{array}{ll}
@@ -90,6 +90,15 @@ $$
 It gives a valid result:
 * For $a=0$, unless $u=0$, $t=0$, or $g(u) = -t^2$.
 * For $a \neq 0$, unless $t^2h(u) = -1$ or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$.
+
+The inverse, $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$ is significantly simpler:
+
+$$
+P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
+Yu\sqrt{-3} - X & a = 0 \\
+\dfrac{Y-Y_0}{X-X_0} & a \neq 0
+\end{array}\right.
+$$
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
@@ -103,28 +112,24 @@ $$
 \end{array}
 $$
 
-### 2.1 Decoding for *a=0* curves
+### 2.1 Decoding for `secp256k1`
 
-Put together, decoding $(u, t)$ to an x-coordinate for $a=0$ curves corresponds to just:
+Put together and specialized for $a=0$ curves, decoding $(u, t)$ to an x-coordinate is:
 
 **Define** $F_u(t)$ as:
 * Let $X = \dfrac{u^3 + b - t^2}{2t}$.
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
-In the above procedure, there are 3 possible conditions that give undefined results:
-* $t=0$ yields a division by zero in the computation of $X$ and $Y$.
-* $u=0$ yields a division by zero in the computation of $Y$.
-* If $u^3 + b + t^2 = 0$, then $Y=0$, which isn't valid on $S_u$.
-
-**Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
-We wish to avoid the need for callers to deal with this special case.
-
-We make sure these conditions result in valid x-coordinates by altering the input in these cases:
+To make sure that every input decodes to a valid x-coordinate, we adjust the input in case
+$P_u$ fails ($u=0$, $t=0$, or $g(u) = -t^2$):
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $u'^3 + b + t''^2 \neq 0$).
 * Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
+
+**Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
+We wish to avoid the need for callers to deal with this special case.
 
 This is implemented in `secp256k1_ellswift_xswiftec_frac_var` (which decodes to an x-coordinate represented as a fraction), and
 in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
@@ -244,9 +249,9 @@ Ignoring the negligible cases, we get:
 
 Whenever a square root of a non-square is taken, $\bot$ is returned; for both square roots this happens with roughly
 50% on random inputs. Similarly, when a division by 0 would occur, $\bot$ is returned as well; this will only happen
-with negligible probability. On curves of odd order $u^2 + uv + v^2 + a \neq 0$, as equality would imply $g(-u-x) = g(x)$
-which would mean the $g(-u-x)$ is square condition has triggered and $\bot$ would have been returned already
-(however, on even-ordered curves it can also be a 0/0 as $g(u) = 0$ is possible).
+with negligible probability. The division in the first branch in fact cannot occur at all, $u^2 + uv + v^2 + a = 0$
+implies $g(-u-x) = g(x)$ which would mean the $g(-u-x)$ is square condition has triggered
+and $\bot$ would have been returned already.
 
 **Note**: In the paper, the $case$ variable corresponds roughly to the $c$ above, but only takes on 4 possible values (1 to 4).
 The conditional negation of $w$ at the end is done randomly, which is equivalent, but makes testing harder. We choose to
