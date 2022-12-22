@@ -57,7 +57,7 @@ First some definitions:
 * Let the function $h(x) = 3x^3 + 4a$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
-* For almost every $u$, $P_u$ is a function from almost all of $\mathbb{F}$ to $S_u$ that will be defined later.
+* $P_u$ will be defined as function such that for almost all $(u, t)$ it holds that $P_u(t) \in S_u$.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 **Note**: In the paper:
@@ -78,13 +78,18 @@ to this, namely when $z=0$, but even then one of the three values is a valid x-c
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$ depends on various properties of the curve. For $a=0$ curves, it is:
+The function $P_u$:
 
-$$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+$$
+P_u(t) = \left\\{\begin{array}{ll}
+\left(\dfrac{g(u) - t^2}{2t}, \dfrac{g(u) + t^2}{2tu\sqrt{-3}}\right) & a = 0 \\
+\left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))}, \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right) & a \neq 0
+\end{array}\right.
+$$
 
-For $a \neq 0$ curves it depends on helper values $X_0$ and $Y_0$ that depend on $u$ (see Appendix A in the paper):
-
-$$P_u(t) = \left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))}, \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right)$$
+It gives a valid result:
+* For $a=0$, unless $u=0$, $t=0$, or $g(u) = -t^2$.
+* For $a \neq 0$, unless $t^2h(u) = -1$ or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$.
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
