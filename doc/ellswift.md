@@ -40,22 +40,22 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
 This is the *ElligatorSwift* algorithm, here given for just x-coordinates. An extension to full
-$(x, y)$ points will be given later. The algorithm finds a uniformly random $(u, t)$ among those
+$(x, y)$ points will be given later. The algorithm finds a uniformly random $(u, t)$ among (almost all) those
 for which $F_u(t) = x$. Section 3.2 in the paper proves that the number of such encodings for
 almost all x-coordinates on the curve (all but at most 39) is close to two times the field size
-(specifically, it lies in $[2q-22\sqrt{q}-O(1),2q+22\sqrt{q}+O(1)]$, where $q$ is the size of the field).
+(specifically, it lies in the range $2q \pm (22\sqrt{q}-O(1))$, where $q$ is the size of the field).
 
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$ (with characteristic 5 or higher).
+* $\mathbb{F}$ is the finite field of size $q$ (where $q mod 3 = 1$ and with characteristic 5 or higher).
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
 * Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
-  public constants.
+  public constants, that satisfy the conditions in Section 4.2 of the paper.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
-* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$ where $Y \neq 0$.
+* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$ and $Y \neq 0$.
 * For almost every $u$, $P_u$ is a function from almost all of $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
@@ -70,19 +70,20 @@ hand must also be square. As the product of two non-squares is a square in $\mat
 out the three right-hand side factors an even number must be non-squares.
 This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
-at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$.
+at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$. There is one exception
+to this, namely when $z=0$, but even then one of the three values is a valid x-coordinate.
 
-The one exception to the above rule is the case where $g(x_1)=0$ and $g(x_2)=0$, but $g(x_3) \neq 0$.
-This requires a point with y-coordinate *0* on the curve, which would have order 2. This is not
-possible for any curve of odd order, like `secp256k1`.
-
-**Define** $F_u(t)$ as:
+**Define** the decoding function $F_u(t)$ as:
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$ depends on various properties of the curve, but can be stated concisely for $a=0$
-curves like `secp256k1`: $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
-For $a \neq 0$ curves, see Equation 14 and Appendix A in the paper.
+The function $P_u$ depends on various properties of the curve. For $a=0$ curves, it is:
+
+$$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
+
+For $a \neq 0$ curves it depends on helper functions $X_0(u)$ and $Y_0(u)$ (see Appendix A in the paper):
+
+$$P_u(t) = \left(\dfrac{g(u) + (3u^2 + 4a)(Y_0(u) - tX_0(u))^2}{X_0(u)(1+t^2(3u^2 + 4a))}, \dfrac{tg(u) + (Y_0(u) - tX_0(u))(t(3u^2 + 4a)Y_0(u) + X_0(u))}{X_0(u)(1+t^2(3u^2 + 4a))}\right)$$
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
