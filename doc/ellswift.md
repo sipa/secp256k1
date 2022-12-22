@@ -82,9 +82,9 @@ The function $P_u$ depends on various properties of the curve. For $a=0$ curves,
 
 $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\right)$$
 
-For $a \neq 0$ curves it depends on helper functions $X_0(u)$ and $Y_0(u)$ (see Appendix A in the paper):
+For $a \neq 0$ curves it depends on helper values $X_0$ and $Y_0$ that depend on $u$ (see Appendix A in the paper):
 
-$$P_u(t) = \left(\dfrac{g(u) + h(u)(Y_0(u) - tX_0(u))^2}{X_0(u)(1+t^2h(u))}, \dfrac{tg(u) + (Y_0(u) - tX_0(u))(th(u)Y_0(u) + X_0(u))}{X_0(u)(1+t^2h(u))}\right)$$
+$$P_u(t) = \left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))}, \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right)$$
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
