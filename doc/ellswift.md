@@ -78,12 +78,12 @@ to this, namely when $z=0$, but even then one of the three values is a valid x-c
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$:
+The function $P_u$ for $a \neq 0$ depends on values $X_0$ and $Y_0$, which are functions of $u$:
 
 $$
-P_u(t) = \left\\{\begin{array}{ll}
-\left(\dfrac{g(u) - t^2}{2t}, \dfrac{g(u) + t^2}{2tu\sqrt{-3}}\right) & a = 0 \\
-\left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))}, \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right) & a \neq 0
+P_u(t) = \left\\{\begin{array}{llcl}
+\left(\dfrac{g(u) - t^2}{2t} & , & \dfrac{g(u) + t^2}{2tu\sqrt{-3}}\right) & a = 0 \\
+\left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))} & , & \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right) & a \neq 0
 \end{array}\right.
 $$
 
