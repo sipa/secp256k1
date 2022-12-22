@@ -54,8 +54,9 @@ First some definitions:
   public constants, that satisfy the conditions in Section 4.2 of the paper.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
+* Let the function $h(x) = 3x^3 + 4a$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
-* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + (3u^2 + 4a)Y^2 = -g(u)$ and $Y \neq 0$.
+* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
 * For almost every $u$, $P_u$ is a function from almost all of $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
@@ -83,7 +84,7 @@ $$P_u(t) = \left(\dfrac{u^3 + b - t^2}{2t}, \dfrac{u^3 + b + t^2}{2tu\sqrt{-3}}\
 
 For $a \neq 0$ curves it depends on helper functions $X_0(u)$ and $Y_0(u)$ (see Appendix A in the paper):
 
-$$P_u(t) = \left(\dfrac{g(u) + (3u^2 + 4a)(Y_0(u) - tX_0(u))^2}{X_0(u)(1+t^2(3u^2 + 4a))}, \dfrac{tg(u) + (Y_0(u) - tX_0(u))(t(3u^2 + 4a)Y_0(u) + X_0(u))}{X_0(u)(1+t^2(3u^2 + 4a))}\right)$$
+$$P_u(t) = \left(\dfrac{g(u) + h(u)(Y_0(u) - tX_0(u))^2}{X_0(u)(1+t^2h(u))}, \dfrac{tg(u) + (Y_0(u) - tX_0(u))(th(u)Y_0(u) + X_0(u))}{X_0(u)(1+t^2h(u))}\right)$$
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
@@ -174,7 +175,7 @@ We can now write the expressions for finding $(v, w)$ given $x$ explicitly, by s
 expressions for $v$ or $w$, and using the $S_u'$ equation to find the other variable:
 * Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}$.
 * Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}$.
-* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = -u/2 \pm \sqrt{-w^2(4g(u) + w^2(3u^2 + 4a))}/(2w^2)$.
+* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = -u/2 \pm \sqrt{-w^2(4g(u) + w^2h(u))}/(2w^2)$.
 
 ### 3.2 Avoiding computing all inverses
 
@@ -229,7 +230,7 @@ Ignoring the negligible cases, we get:
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (using $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
   * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + s(3u^2+4a))}$.
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
   * Let $v = (r/s - u)/2$ if $c \in \\{3, 7\\}$; $(-r/s - u)/2$ otherwise.
 * Let $w = \sqrt{s}$.
 * Depending on $c$:
@@ -257,7 +258,7 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
 * Let $w = \sqrt{s}$.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
@@ -295,7 +296,7 @@ Specialized for odd-ordered $a=0$ curves:
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
   * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
 * Let $w = \sqrt{s}$.
 * Depending on $c$:
@@ -354,7 +355,7 @@ And encoding would be done using a $G_{c,u}(x, y)$ function defined as:
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + s(3u^2+4a))}/s - u)/2$.
+  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
 * Let $w = \sqrt{s}$.
 * Let $w' = w$ if $sign(w/2) = sign(y)$; otherwise $w' = -w$.
 * Depending on $c$:
