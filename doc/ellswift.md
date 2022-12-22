@@ -48,7 +48,7 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$ (where $q \equiv 1 (mod\,3)$ and with characteristic 5 or higher).
+* $\mathbb{F}$ is the finite field of size $q$ (where $q \equiv 1 (mod\\,3)$ and with characteristic 5 or higher).
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
 * Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, that satisfy the conditions in Section 4.2 of the paper.
