@@ -455,14 +455,14 @@ encode the y-coordinate directly. Combined with the earlier remapping to guarant
 as decoder:
 
 **Define** *Decode(u, t)* as:
-* Let $u'=u$ unless $u=0$, in which case $u'=1.$
-* Let $t'=t$ unless $t=0$, in which case $t'=1.$
-* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'.$
+* Let $u'=u$ if $u \neq 0$; $1$ otherwise.
+* Let $t'=t$ if $t \neq 0$; $1$ otherwise.
+* Let $t''=t'$ if $u'^3 + b + t'^2 \neq 0$; $2t'$ otherwise.
 * Let $X = \dfrac{u'^3 + b - t''^2}{2t''}.$
 * Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}.$
 * Let $x$ be the first element of $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
 * Let $y = \sqrt{g(x)}.$
-* If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y).$
+* Return $(x, y)$ if $sign(y) = sign(t)$; $(x, -y)$ otherwise.
 
 This is implemented in `secp256k1_ellswift_swiftec_var`. The used $sign(x)$ function is the parity of $x$ when represented as in integer in $[0,q).$
 
