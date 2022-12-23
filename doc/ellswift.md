@@ -91,8 +91,8 @@ P_u(t) = \left\\{\begin{array}{ll}
 $$
 
 It is defined:
-* For $a=0$, unless $u=0$ or $t=0$ (division by zero), or $g(u) = -t^2$ ($Y=0$).
-* For $a \neq 0$, unless $t^2h(u) = -1$ (division by zero) or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$ ($Y=0$).
+* For $a=0$, unless $u=0$ or $t=0$ (division by zero), or $g(u) = -t^2$ (would give $Y=0$).
+* For $a \neq 0$, unless $t^2h(u) = -1$ (division by zero) or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$ (would give $Y=0$).
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
