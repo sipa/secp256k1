@@ -50,17 +50,17 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$, of characteristic 5 or more, and $q = 1 \mod 3$.
+* $\mathbb{F}$ is the finite field of size $q$, of characteristic 5 or more, and $q = 1 \mod 3.$
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$, which satisfies that requirement.
 * Let $E$ be the elliptic curve of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, for which $\Delta_E = -16(4a^3 + 27b^2)$ is a square, and at least one of $(-b \pm \sqrt{-3 \Delta_E} / 36)/2$ is a square.
   This implies that the order of $E$ is either odd, or a multiple of *4*.
   If $a=0$, this condition is always fulfilled.
-  * For `secp256k1`, $a=0$ and $b=7$.
-* Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
-* Let the function $h(x) = 3x^3 + 4a$.
-* Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
-* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
+  * For `secp256k1`, $a=0$ and $b=7.$
+* Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x).$
+* Let the function $h(x) = 3x^3 + 4a.$
+* Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3).$
+* Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0.$
 * $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
@@ -134,7 +134,9 @@ $P_u$ is not defined (when $u=0$, $t=0$, or $g(u) = -t^2$):
 * Let $u'=u$ if $u \neq 0$; $1$ otherwise (guaranteeing $u' \neq 0$).
 * Let $t'=t$ if $t \neq 0$; $1$ otherwise (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ if $g(u') \neq -t'^2$; $2t'$ otherwise (guaranteeing $t'' \neq 0$ and $g(u') \neq -t''^2$).
-* Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
+* Let $X = \dfrac{u'^3 + b - t''^2}{2t''}.$
+* Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}.$
+* Return the first $x$ in $(u' + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u'}{2}, \dfrac{X}{2Y} - \dfrac{u'}{2})$ for which $x^3 + b$ is square.
 
 The choices here are not strictly necessary. Just returning a fixed constant in any of the undefined cases would suffice,
 but the approach here is simple enough and gives fairly uniform output even in these cases.
@@ -162,7 +164,7 @@ Yu\sqrt{-3} - X & a = 0 \\
 \end{array}\right.
 $$
 
-The third step here, verifying that $F_u(t) = x$, is necessary because for the $(X, Y)$ values found through the $x_1$ and $x_2$ expressions,
+The third step above, verifying that $F_u(t) = x$, is necessary because for the $(X, Y)$ values found through the $x_1$ and $x_2$ expressions,
 it is possible that decoding through $\psi_u(X, Y)$ yields a valid $x_3$ on the curve, which would take precedence over the
 $x_1$ or $x_2$ decoding. These $(X, Y)$ solutions must be rejected.
 
@@ -207,7 +209,7 @@ expressions for $v$ or $w$, and using the $S_u'$ equation to find the other vari
 
 ### 3.2 Avoiding computing all inverses
 
-The ElligatorSwift algorithm as stated in Section 1 requires the computation of $L = F_u^{-1}(x)$ (the
+The *ElligatorSwift* algorithm as stated in Section 1 requires the computation of $L = F_u^{-1}(x)$ (the
 set of all $t$ such that $(u, t)$ decode to $x$) in full. This is unnecessary.
 
 Observe that the procedure of restarting with probability $(1 - \frac{\\#L}{8})$ and otherwise returning a
@@ -216,10 +218,10 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u$.
-  * Compute the set $L = F_u^{-1}(x)$.
-  * Let $T$ be the 8-element vector consisting of the elements of $L$, plus $8 - \\#L$ times $\\{\bot\\}$.
-  * Select a uniformly random $t \in T$.
+  * Pick a uniformly random field element $u.$
+  * Compute the set $L = F_u^{-1}(x).$
+  * Let $T$ be the 8-element vector consisting of the elements of $L$, plus $8 - \\#L$ times $\\{\bot\\}.$
+  * Select a uniformly random $t \in T.$
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
 Now notice that the order of elements in $T$ does not matter, as all we do is pick a uniformly
@@ -239,9 +241,9 @@ the loop can be simplified to only compute one of the inverses instead of all of
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u$.
-  * Pick a uniformly random integer $c$ in $[0,8)$.
-  * Let $t = G_{c,u}(x)$.
+  * Pick a uniformly random field element $u.$
+  * Pick a uniformly random integer $c$ in $[0,8).$
+  * Let $t = G_{c,u}(x).$
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
 This is implemented in `secp256k1_ellswift_xelligatorswift_var`.
@@ -282,18 +284,19 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
 
 **Define** $G_{c,u}(x)$ as:
 * If $c \in \\{0, 1, 4, 5\\}$:
-  * If $g(-u-x)$ is square, return $\bot$.
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
-  * Let $v = x$.
-* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
-  * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
+  * If $g(-u-x)$ is square, return $\bot.$
+  * Let $s = -g(u)/(u^2 + ux + x^2 + a).$
+  * Let $v = x.$
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}:$
+  * Let $s = x-u.$
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}.$
+  * Let $v = (r/s - u)/2.$
 * Let $w = \sqrt{s}$.
 * Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
-  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
-  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
-  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
+  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w).$
+  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w).$
+  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w).$
+  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w).$
 
 This shows there will always be exactly 0, 4, or 8 $t$ values for a given $(u, x)$ input.
 There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
