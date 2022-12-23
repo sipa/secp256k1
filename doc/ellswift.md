@@ -50,7 +50,7 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field in which *-3* is a square.
+* $\mathbb{F}$ is the finite field of size $q$, with the requirement that *-3* is a square.
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
 * Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, that satisfy the conditions in Section 4.2 of the paper.
