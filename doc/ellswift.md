@@ -293,7 +293,7 @@ we analyse them here. They generally fall into two categories: cases in which th
 don't decode back to $x$ (or at least can't guarantee they they do), and cases in which the encoder might produce the same
 $t$ value for multiple $c$ inputs (thereby biasing that encoding):
 
-* In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}):
+* In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}$):
   * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u$. This is only possible on even-ordered curves.
     Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
     (squareness of $g(-u-x)$) fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
@@ -302,7 +302,7 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
     encoder anyway as there will generally be more than 8.
   * When $g(x) = 0$, the same $t$ would be produced as in the $x_3$ branch (where $c \in \\{2, 3, 6, 7\\}) which we give precedence.
     This is again only possible on even-ordered curves.
-* In the branch for $x_3$ (where $c \in \\{2, 3, 6, 7\\}):
+* In the branch for $x_3$ (where $c \in \\{2, 3, 6, 7\\}$):
   * When $u = -u-v$ and $c \in \\{3, 7\\}$, the same $t$ would be returned as in the $c \in \\{2, 6\\}$ cases.
     It is equivalent to checking whether the square root is zero.
     This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
