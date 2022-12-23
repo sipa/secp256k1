@@ -102,7 +102,7 @@ $P_u(t)$ is defined:
   * $u \neq 0$ and $t \neq 0$ (division by zero)
   * $g(u) \neq -t^2$ (would give $Y=0$).
 * For $a \neq 0$, when:
-  * $t^2h(u) \neq -1$ (division by zero)
+  * $h(u)t^2 \neq -1$ (division by zero)
   * $g(u)t \neq (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t)$ (would give $Y=0$).
 
 The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E$.
@@ -114,7 +114,7 @@ $$
   x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} && \\
   x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} && \\
   x_3 & = & u + 4Y^2 && \\
-  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a) = & \dfrac{-g(u)g(x_3)}{8Y^3}
+  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a) = \dfrac{-g(u)g(x_3)}{8Y^3}
 \end{array}
 $$
 
@@ -129,6 +129,8 @@ Put together and specialized for $a=0$ curves, decoding $(u, t)$ to an x-coordin
 
 To make sure that every input decodes to a valid x-coordinate, we remap the inputs in case
 $P_u$ is not defined (when $u=0$, $t=0$, or $g(u) = -t^2$):
+
+**Define** $F_u(t)$ as:
 * Let $u'=u$ if $u \neq 0$; $1$ otherwise (guaranteeing $u' \neq 0$).
 * Let $t'=t$ if $t \neq 0$; $1$ otherwise (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ if $g(u') \neq -t'^2$; $2t'$ otherwise (guaranteeing $t'' \neq 0$ and $g(u') \neq -t''^2$).
