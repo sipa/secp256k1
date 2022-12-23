@@ -136,7 +136,6 @@ in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
 To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for which $F_u(t) = x$, we have to reverse the process:
 * Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1$, $x_2$, or $x_3$ formulas in $\psi_u$.
 * Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y)$
-  * For $a=0$ curves, $P_u^{-1}(X, Y) = u\sqrt{-3}Y - X$.
 * For each of the found $t$ values, verify that $F_u(t) = x$.
 * Return the remaining $t$ values.
 
