@@ -471,6 +471,6 @@ The corresponding encoder would invoke the x-only one, but negating the output $
 This is implemented in `secp256k1_ellswift_elligatorswift_var`.
 
 Note that this is only intended for encoding points where both the x-coordinate and y-coordinate are unpredictable. When encoding x-only points
-where the y-coordinate is implicitly even (or implicitly square, or implicitly in $\\[0,q/2\\]$), the encoder in
+where the y-coordinate is implicitly even (or implicitly square, or implicitly in $[0,q/2]$), the encoder in
 [Section 3.5](#35-encoding-for-secp256k1) must be used, or a bias is reintroduced that undoes all the benefit of using ElligatorSwift
 in the first place.
