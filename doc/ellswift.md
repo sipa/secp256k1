@@ -122,7 +122,7 @@ $P_u$ is not defined (when $u=0$, $t=0$, or $g(u) = -t^2$):
 * Let $t''=t'$ if $g(u') \neq -t'^2$; $2t'$ otherwise (guaranteeing $t'' \neq 0$ and $g(u') \neq -t''^2$).
 * Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
 
-The choices here aren't strictly necessary. Just returning a fixed constant in any of the undefined cases would suffice,
+The choices here are not strictly necessary. Just returning a fixed constant in any of the undefined cases would suffice,
 but the approach here is simple enough and gives fairly uniform output even in these cases.
 
 **Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
@@ -159,10 +159,10 @@ $x_1$ and $x_2$ is on the curve. This is significantly simpler, as it turns out.
 
 Observe that $\psi_u$ guarantees that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
 $-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $g(-u-x)$ is a square,
-and if so, not include the corresponding $t$ values in the returned set. As this doesn't need $X$, $Y$, or $t$, this can in fact be determined
+and if so, not include the corresponding $t$ values in the returned set. As this does not need $X$, $Y$, or $t$, this condition can be determined
 before those values are computed.
 
-It's not possible that an encoding found through the $x_1$ expression decodes to a different valid x-coordinate using $x_2$ (which would
+It is not possible that an encoding found through the $x_1$ expression decodes to a different valid x-coordinate using $x_2$ (which would
 take precedence), for the same reason: if both $x_1$ and $x_2$ decodings were valid, $x_3$ would be valid as well, and thus take
 precedence over both. Because of this, the $g(-u-x)$ being square test for $x_1$ and $x_2$ is the only test necessary to guarantee the found $t$
 values round-trip back to the input $x$ correctly. This is the reason for choosing the $(x_3, x_2, x_1)$ precedence order in the decoder;
@@ -209,8 +209,8 @@ picking a uniformly random element from that, restarting whenever $\bot$ is pick
   * Select a uniformly random $t \in T$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
-Now notice that the order of elements in $T$ doesn't matter, as all we do is pick a uniformly
-random element in it, so we don't need to have all $\bot$ values at the end.
+Now notice that the order of elements in $T$ does not matter, as all we do is pick a uniformly
+random element in it, so we do not need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
 * Formulas that yield no solutions, including due to division by zero or taking the square root of a non-square, are made to return $\bot$.
@@ -290,7 +290,7 @@ There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each res
 As mentioned before there are a few cases to deal which only happen in a negligibly small subset of inputs (besides division by zero).
 For cryptographically sized curves, if only random inputs are going to be considered, it is unnecessary to deal with these. Still, for completeness
 we analyse them here. They generally fall into two categories: cases in which the encoder would produce $t$ values that
-don't decode back to $x$ (or at least can't guarantee they they do), and cases in which the encoder might produce the same
+do not decode back to $x$ (or at least cannot guarantee that they do), and cases in which the encoder might produce the same
 $t$ value for multiple $c$ inputs (thereby biasing that encoding):
 
 * In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}$):
@@ -306,7 +306,7 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
   * When $u = -u-v$ and $c \in \\{3, 7\\}$, the same $t$ would be returned as in the $c \in \\{2, 6\\}$ cases.
     It is equivalent to checking whether the square root is zero.
     This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
-    A similar concern for $w = -w$ doesn't exist, as $w=0$ is already impossible in both branches: in the first
+    A similar concern for $w = -w$ does not exist, as $w=0$ is already impossible in both branches: in the first
     it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero.
 
 **Define** a version of $G_{c,u}(x)$ which deals with all these cases:
@@ -328,8 +328,8 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
   * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
 
 Given any $u$, using this algorithm over all $x$ and $c$ values, every $t$ value will be reached exactly once,
-for an $x$ for which $F_u(t) = x$ holds, except for these cases that won't be reached:
-* (Obviously) all cases where $P_u(t)$ isn't defined:
+for an $x$ for which $F_u(t) = x$ holds, except for these cases that will not be reached:
+* (Obviously) all cases where $P_u(t)$ is not defined:
   * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2$.
   * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (tX_0 - Y_0)(h(u)tY_0 + X_0)$.
 * When $g(u)=0$, the potentially many $t$ values that decode to an $x$ satisfying $g(x)=0$ using the $x_2$ formula. These were excluded by the $g(u)=0$ condition in the $c \in \\{0, 1, 4, 5\\}$ branch.
@@ -382,8 +382,8 @@ in $t$ as well.
 
 Note that for any $(X, Y) \in S_u$, $(\pm X, \pm Y)$ are all on $S_u$. Moreover, all of these are
 mapped to the same x-coordinate. Negating $X$ or negating $Y$ just results in $x_1$ and $x_2$
-being swapped, and doesn't affect $x_3$. This won't change the outcome x-coordinate as the order
-of $x_1$ and $x_2$ only matters if both were to be valid, in which case $x_3$ would be used instead.
+being swapped, and does not affect $x_3$. This will not change the outcome x-coordinate as the order
+of $x_1$ and $x_2$ only matters if both were to be valid, and in that case $x_3$ would be used instead.
 
 Still, these four $(X, Y)$ combinations all correspond to distinct $t$ values, so we can encode
 the sign of the y-coordinate in the sign of $X$ or the sign of $Y$. They correspond to the
@@ -422,7 +422,7 @@ Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on t
 
 In the above logic, $sign$ can be implemented in several ways, such as parity of the integer representation
 of the input field element (for prime-sized fields) or the quadratic residuosity (for fields where
-$-1$ is not square). The choice doesn't matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
+$-1$ is not square). The choice does not matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
 value, and has the property that $sign(-x) = -sign(x)$.
 
 ### 4.1 Full *(x, y)* coordinates for `secp256k1`
