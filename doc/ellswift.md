@@ -35,10 +35,10 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
 
 **Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
-  * Pick a uniformy random field element $u$.
+  * Pick a uniformy random field element $u.$
   * Compute the set $L = F_u^{-1}(x)$ of $t$ values for which $F_u(t) = x$, which may have up to *8* elements.
   * With probability $1 - \dfrac{\\#L}{8}$, restart the loop.
-  * Select a uniformly random $t \in L$ and return $(u, t)$.
+  * Select a uniformly random $t \in L$ and return $(u, t).$
 
 This is the *ElligatorSwift* algorithm, here given for just x-coordinates. An extension to full
 $(x, y)$ points will be given in [Section 4](#4-encoding-and-decoding-full-x-y-coordinates).
@@ -66,23 +66,23 @@ First some definitions:
 
 **Note**: In the paper:
 * $F_u$ corresponds to $F_{0,u}$ there.
-* $P_u(t)$ corresponds to the pair of functions $X(u, t)$ and $Y(u, t)$ there, the result of which is jointly called $P$.
+* $P_u(t)$ is called $P$ there.
 * All $S_u$ sets together correspond to $S$ there.
 * All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
 
 Note that for $V$, the left hand side of the equation $z^2$ is square, and thus the right
-hand must also be square. As multiplying non-squares results in a square in $\mathbb{F}$,
+hand must also be square. As multiplying non-squares results in a square in $\mathbb{F},$
 out of the three right-hand side factors an even number must be non-squares.
 This implies that exactly *1* or exactly *3* out of
-$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
+$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V,$
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$. There is one exception
-to this, namely when $z=0$, but even then one of the three values is a valid x-coordinate.
+to this, namely when $z=0,$ but even then one of the three values is a valid x-coordinate.
 
 **Define** the decoding function $F_u(t)$ as:
-* Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
+* Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t)).$
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-$P_u(t) = (X(u, t), Y(u, t))$, where:
+$P_u(t) = (X(u, t), Y(u, t)),$ where:
 
 $$
 \begin{array}{lcl}
@@ -98,7 +98,7 @@ Y(u, t) & = & \left\\{\begin{array}{ll}
 $$
 
 $P_u(t)$ is defined:
-* For $a=0$, when:
+* For $a=0,$ when:
   * $u \neq 0$ and $t \neq 0$ (division by zero)
   * $g(u) \neq -t^2$ (would give $Y=0$).
 * For $a \neq 0$, when:
@@ -107,7 +107,7 @@ $P_u(t)$ is defined:
 
 The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E$.
 
-The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
+The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z),$ where:
 
 $$
 \begin{array}{lcl}
@@ -123,8 +123,8 @@ $$
 Put together and specialized for $a=0$ curves, decoding $(u, t)$ to an x-coordinate is:
 
 **Define** $F_u(t)$ as:
-* Let $X = \dfrac{u^3 + b - t^2}{2t}$.
-* Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
+* Let $X = \dfrac{u^3 + b - t^2}{2t}.$
+* Let $Y = \dfrac{X + t}{u\sqrt{-3}}.$
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
 To make sure that every input decodes to a valid x-coordinate, we remap the inputs in case
@@ -150,12 +150,12 @@ in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
 ## 3. The encoding function
 
 To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for which $F_u(t) = x$, we have to reverse the process:
-* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1$, $x_2$, or $x_3$ formulas in $\psi_u$.
-* Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y)$
-* For each of the found $t$ values, verify that $F_u(t) = x$.
+* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1,$ $x_2,$ or $x_3$ formulas in $\psi_u.$
+* Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y).$
+* For each of the found $t$ values, verify that $F_u(t) = x.$
 * Return the remaining $t$ values.
 
-The function $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$ is significantly simpler than $P_u$:
+The function $P_u^{-1},$ which finds $t$ given $(X, Y) \in S_u,$ is significantly simpler than $P_u$:
 
 $$
 P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
