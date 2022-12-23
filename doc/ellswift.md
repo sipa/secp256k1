@@ -60,7 +60,7 @@ First some definitions:
 * Let the function $h(x) = 3x^3 + 4a$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
-* $P_u$ is a function from $F$ to $S_u$ that will be defined later.
+* $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 **Note**: In the paper:
