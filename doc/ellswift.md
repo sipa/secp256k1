@@ -296,7 +296,7 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
 * In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}$):
   * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u$. This is only possible on even-ordered curves.
     Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
-    (squareness of $g(-u-x)$) fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
+    fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
     This does exclude some valid encodings: when both $g(u)=0$ and $u^2+ux+x^2+a=0$ (also implying $g(x)=0$),
     the division is undefined, and many valid $t$ values may exist. Yet, these cannot be targetted uniformly by the
     encoder anyway as there will generally be more than 8.
