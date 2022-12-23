@@ -91,7 +91,7 @@ X(u, t) & = & \left\\{\begin{array}{ll}
   \dfrac{g(u) + h(u)(Y_0(u) + X_0(u)t)^2}{X_0(u)(1 + h(u)t^2)} & a \neq 0
 \end{array}\right. \\
 Y(u, t) & = & \left\\{\begin{array}{ll}
-  \dfrac{X(u, t) + t}{u \sqrt{-3}} & a = 0 \\
+  \dfrac{X(u, t) + t}{u \sqrt{-3}} = \dfrac{g(u) + t^2}{2tu\sqrt{-3}} & a = 0 \\
   Y_0(u) + t(X(u, t) - X_0(u)) & a \neq 0
 \end{array}\right.
 \end{array}
