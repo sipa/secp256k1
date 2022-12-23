@@ -70,8 +70,8 @@ First some definitions:
 * All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
 
 Note that for $V$, the left hand side of the equation $z^2$ is square, and thus the right
-hand must also be square. As the product of two non-squares is a square in $\mathbb{F}$,
-out the three right-hand side factors an even number must be non-squares.
+hand must also be square. As multiplying non-squares results in a square in $\mathbb{F}$,
+out of the three right-hand side factors an even number must be non-squares.
 This implies that exactly *1* or exactly *3* out of
 $\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
 at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$. There is one exception
