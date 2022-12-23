@@ -53,7 +53,7 @@ First some definitions:
 * $\mathbb{F}$ is the finite field of size $q$, with the requirement that *-3* is a square.
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$, which satisfies that requirement.
 * Let the curve $E$ be the elliptic curve of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
-  public constants, for which $-16(4a^3 + 27b^2)$ is a square, and at least one of $\frac{\pm\sqrt{12a^3 + 81b^2}-9b}{18}$ is a square.
+  public constants, for which $\Delta_E = -16(4a^3 + 27b^2)$ is a square, and at least one of $(-b \pm \sqrt{-3 \Delta_E} / 36)/2$ is a square.
   If $a=0$, this condition is always fulfilled.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
