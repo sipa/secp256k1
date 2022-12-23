@@ -3,7 +3,7 @@
 In this document we explain how the `ellswift` module implementation is related to the
 construction in the
 ["SwiftEC: Shallue–van de Woestijne Indifferentiable Function To Elliptic Curves"](https://eprint.iacr.org/2022/759)
-paper by Chavez-Saab, Rodrıguez-Henrıquez, and Tibouchi.
+paper by Jorge Chávez-Saab, Francisco Rodríguez-Henríquez, and Mehdi Tibouchi.
 
 * [1. Introduction](#1-introduction)
 * [2. The decoding function](#2-the-decoding-function)
@@ -228,7 +228,7 @@ Now notice that the order of elements in $T$ does not matter, as all we do is pi
 random element in it, so we do not need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
-* Formulas that yield no solutions, including due to division by zero or taking the square root of a non-square, are made to return $\bot.$
+* Formulas that yield no solutions (due to division by zero or non-existing square roots) or invalid solutions are made to return $\bot.$
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead (the round-trip check).
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
