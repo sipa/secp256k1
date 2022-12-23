@@ -82,13 +82,13 @@ to this, namely when $z=0$, but even then one of the three values is a valid x-c
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-Now define $P_u(t) = (X(u, t), Y(u, t))$, where:
+$P_u(t) = (X(u, t), Y(u, t))$, where:
 
 $$
 \begin{array}{lcl}
 X(u, t) & = & \left\\{\begin{array}{ll}
   \dfrac{g(u) - t^2}{2t} & a = 0 \\
-  \dfrac{g(u) + h(u)(Y_0(u) + tX_0(u))^2}{X_0(u)(1 + t^2 h(u))} & a \neq 0
+  \dfrac{g(u) + h(u)(Y_0(u) + X_0(u)t)^2}{X_0(u)(1 + h(u)t^2)} & a \neq 0
 \end{array}\right. \\
 Y(u, t) & = & \left\\{\begin{array}{ll}
   \dfrac{X(u, t) + t}{u \sqrt{-3}} & a = 0 \\
@@ -97,13 +97,13 @@ Y(u, t) & = & \left\\{\begin{array}{ll}
 \end{array}
 $$
 
-It is defined:
+$P_u(t)$ is defined:
 * For $a=0$, when:
   * $u \neq 0$ and $t \neq 0$ (division by zero)
   * $g(u) \neq -t^2$ (would give $Y=0$).
 * For $a \neq 0$, when:
   * $t^2h(u) \neq -1$ (division by zero)
-  * $tg(u) = (tX_0(u) - Y_0(u))(th(u)Y_0(u) + X_0(u))$ (would give $Y=0$).
+  * $g(u)t \neq (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t)$ (would give $Y=0$).
 
 The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E$.
 
