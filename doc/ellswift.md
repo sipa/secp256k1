@@ -218,7 +218,8 @@ we can associate every index in $T$ with exactly one of those formulas, making s
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
 The last condition above only occurs with negligible probability for cryptographically-sized curves, but is interesting
-to take into account as it allows exhaustive testing in small groups. See Section 3.4 for an analysis of all the negligible cases.
+to take into account as it allows exhaustive testing in small groups. See [Section 3.4](#34-dealing-with-special-cases)
+for an analysis of all the negligible cases.
 
 If we define $T = (G_{0,u}(x), G_{1,u}(x), \ldots, G_{7,u}(x))$, with each $G_{i,u}$ matching one of the formulas,
 the loop can be simplified to only compute one of the inverses instead of all of them:
