@@ -314,9 +314,10 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
     Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
     fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
     This does exclude some valid encodings: when both $g(u)=0$ and $u^2+ux+x^2+a=0$ (also implying $g(x)=0$),
-    the division is undefined, and many valid $t$ values may exist. Yet, these cannot be targetted uniformly by the
+    the $S_u'$ equation degenerates to $0 = 0$, and many valid $t$ values may exist. Yet, these cannot be targetted uniformly by the
     encoder anyway as there will generally be more than 8.
-  * When $g(x) = 0$, the same $t$ would be produced as in the $x_3$ branch (where $c \in \\{2, 3, 6, 7\\}$) which we give precedence.
+  * When $g(x) = 0$, the same $t$ would be produced as in the $x_3$ branch (where $c \in \\{2, 3, 6, 7\\}$) which we give precedence
+    as it can deal with $g(u)=0$.
     This is again only possible on even-ordered curves.
 * In the branch for $x_3$ (where $c \in \\{2, 3, 6, 7\\}$):
   * When $u = -u-v$ and $c \in \\{3, 7\\}$, the same $t$ would be returned as in the $c \in \\{2, 6\\}$ cases.
@@ -324,6 +325,11 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
     This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
     A similar concern for $w = -w$ does not exist, as $w=0$ is already impossible in both branches: in the first
     it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero.
+* In the implementation of $S_u^{'-1}$, special cases can occur:
+  * For $a=0$ curves, $u=0$ and $t=0$ need to be avoided as they would trigger division by zero in the decoder.
+    The latter is only possible when $g(u)=0$ and can thus only occur on even-ordered curves.
+  * For $a \neq 0$ curves, $h(u)t^2 = -1$ needs to be avoided as it would trigger division by zero in the decoder.
+    Furthermore, $X=X_0$ is possible and would trigger division by zero in the encoder.
 
 **Define** a version of $G_{c,u}(x)$ which deals with all these cases:
 * If $c \in \\{0, 1, 4, 5\\}:$
@@ -347,9 +353,9 @@ Given any $u$, using this algorithm over all $x$ and $c$ values, every $t$ value
 for an $x$ for which $F_u(t) = x$ holds, except for these cases that will not be reached:
 * (Obviously) all cases where $P_u(t)$ is not defined:
   * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2.$
-  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (tX_0 - Y_0)(h(u)tY_0 + X_0).$
+  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t).$
 * When $g(u)=0$, the potentially many $t$ values that decode to an $x$ satisfying $g(x)=0$ using the $x_2$ formula. These were excluded by the $g(u)=0$ condition in the $c \in \\{0, 1, 4, 5\\}$ branch.
-* For $a \neq 0$ curves, the cases where $2h(u)tX_0Y_0 = g(u) + h(u)Y_0^2 - X_0^2$ as the encoder cannot target these (division by zero in $P_u^{-1}$).
+* For $a \neq 0$ curves, the cases where $2h(u)X_0(u)Y_0(u)t = g(u) + h(u)Y_0(u)^2 - X_0(u)^2$ as the encoder cannot target these (division by zero in $P_u^{-1}$).
 
 These cases form a negligible subset of all $(u, t)$ for cryptographically sized curves.
 
