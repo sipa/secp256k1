@@ -59,7 +59,7 @@ First some definitions:
 * Let the function $h(x) = 3x^3 + 4a$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
-* $P_u$ will be defined as function such that for almost all $(u, t)$ it holds that $P_u(t) \in S_u$.
+* $P_u(t)$ will be defined later for almost all $(u, t)$ such that $P_u(t) \in S_u$.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 **Note**: In the paper:
