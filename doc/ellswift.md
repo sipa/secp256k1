@@ -60,7 +60,7 @@ First some definitions:
 * Let the function $h(x) = 3x^3 + 4a$.
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3)$.
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0$.
-* $P_u(t)$ will be defined later for almost all $(u, t)$ such that $P_u(t) \in S_u$.
+* $P_u$ is a function from $F$ to $S_u$ that will be defined later.
 * $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
 
 **Note**: In the paper:
@@ -90,10 +90,9 @@ P_u(t) = \left\\{\begin{array}{ll}
 \end{array}\right.
 $$
 
-It gives a valid result:
-* For $a=0$, unless $u=0$, $t=0$, or $g(u) = -t^2$.
-* For $a \neq 0$, unless $t^2h(u) = -1$ or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$.
-
+It is defined:
+* For $a=0$, unless $u=0$ or $t=0$ (division by zero), or $g(u) = -t^2$ ($Y=0$).
+* For $a \neq 0$, unless $t^2h(u) = -1$ (division by zero) or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$ ($Y=0$).
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
@@ -116,15 +115,15 @@ Put together and specialized for $a=0$ curves, decoding $(u, t)$ to an x-coordin
 * Let $Y = \dfrac{X + t}{u\sqrt{-3}}$.
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
-To make sure that every input decodes to a valid x-coordinate, we adjust the input in case
-$P_u$ fails (when $u=0$, $t=0$, or $g(u) = -t^2$):
-* Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
-* Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
-* Let $t''=t'$ unless $g(u') = -t'^2$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $g(u') \neq -t'^2$).
+To make sure that every input decodes to a valid x-coordinate, we remap the inputs in case
+$P_u$ is not defined (when $u=0$, $t=0$, or $g(u) = -t^2$):
+* Let $u'=u$ if $u \neq 0$; $1$ otherwise (guaranteeing $u' \neq 0$).
+* Let $t'=t$ if $t \neq 0$; $1$ otherwise (guaranteeing $t' \neq 0$).
+* Let $t''=t'$ if $g(u') \neq -t'^2$; $2t'$ otherwise (guaranteeing $t'' \neq 0$ and $g(u') \neq -t''^2$).
 * Run the earlier algorithm on $(u', t'')$ instead of on $(u, t)$.
 
-The choices here aren't strictly necessary. Just returning a fixed constant in any of the invalid cases would suffice,
-but the approach here is simple and give fairly uniform output even in these cases.
+The choices here aren't strictly necessary. Just returning a fixed constant in any of the undefined cases would suffice,
+but the approach here is simple enough and gives fairly uniform output even in these cases.
 
 **Note**: in the paper these conditions result in $\infty$ as output, due to the use of projective coordinates there.
 We wish to avoid the need for callers to deal with this special case.
