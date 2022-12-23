@@ -50,10 +50,11 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$, with the requirement that *-3* is a square.
+* $\mathbb{F}$ is the finite field of size $q$, of characteristic 5 or more, and $q = 1 \mod 3$.
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$, which satisfies that requirement.
 * Let $E$ be the elliptic curve of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, for which $\Delta_E = -16(4a^3 + 27b^2)$ is a square, and at least one of $(-b \pm \sqrt{-3 \Delta_E} / 36)/2$ is a square.
+  This implies that the order of $E$ is either odd, or a multiple of *4*.
   If $a=0$, this condition is always fulfilled.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
@@ -81,18 +82,29 @@ to this, namely when $z=0$, but even then one of the three values is a valid x-c
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t))$.
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-The function $P_u$ for $a \neq 0$ depends on values $X_0$ and $Y_0$, which are functions of $u$, and defined in Appendix A of the paper.
+Now define $P_u(t) = (X(u, t), Y(u, t))$, where:
 
 $$
-P_u(t) = \left\\{\begin{array}{ll}
-\left(\dfrac{g(u) - t^2}{2t} , \dfrac{g(u) + t^2}{2tu\sqrt{-3}}\right) & a = 0 \\
-\left(\dfrac{g(u) + h(u)(Y_0 - tX_0)^2}{X_0(1+t^2h(u))} , \dfrac{tg(u) + (Y_0 - tX_0)(th(u)Y_0 + X_0)}{X_0(1+t^2h(u))}\right) & a \neq 0
+X(u, t) = \left\\{\begin{array}{ll}
+  \dfrac{g(u) - t^2}{2t} & a = 0 \\
+  \dfrac{g(u) + h(u)(Y_0(u) + tX_0(u))^2}{X_0(u)(1 + t^2 h(u))} & a \neq 0
+\end{array}\right.
+
+Y(u, t) = \left\\{\begin{array}{ll}
+  \dfrac{X(u, t) + t}{u \sqrt{-3}} & a = 0 \\
+  Y_0(u) + t(X(u, t) - X_0(u)) & a \neq 0
 \end{array}\right.
 $$
 
 It is defined:
-* For $a=0$, unless $u=0$ or $t=0$ (division by zero), or $g(u) = -t^2$ (would give $Y=0$).
-* For $a \neq 0$, unless $t^2h(u) = -1$ (division by zero) or $tg(u) = (tX_0 - Y_0)(th(u)Y_0 + X_0)$ (would give $Y=0$).
+* For $a=0$, when:
+  * $u \neq 0$ and $t \neq 0$ (division by zero)
+  * $g(u) \neq -t^2$ (would give $Y=0$).
+* For $a \neq 0$, when:
+  * $t^2h(u) \neq -1$ (division by zero)
+  * $tg(u) = (tX_0(u) - Y_0(u))(th(u)Y_0(u) + X_0(u))$ (would give $Y=0$).
+
+The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E$.
 
 The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
@@ -101,8 +113,7 @@ $$
   x_1 & = & \dfrac{X}{2Y} - \dfrac{u}{2} && \\
   x_2 & = & -\dfrac{X}{2Y} - \dfrac{u}{2} && \\
   x_3 & = & u + 4Y^2 && \\
-  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a) \\
-      & = & \dfrac{-g(u)g(x_3)}{8Y^3}
+  z   & = & \dfrac{g(x_3)}{2Y}(u^2 + ux_1 + x_1^2 + a) = & \dfrac{-g(u)g(x_3)}{8Y^3}
 \end{array}
 $$
 
@@ -181,8 +192,7 @@ $$
   x_1 & = & v \\
   x_2 & = & -u - v \\
   x_3 & = & u + w^2 \\
-  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a) \\
-      & = & \dfrac{-g(u)g(x_3)}{w^3}
+  z   & = & \dfrac{g(x_3)}{w}(u^2 + uv + v^2 + a) = \dfrac{-g(u)g(x_3)}{w^3}
 \end{array}
 $$
 
