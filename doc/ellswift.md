@@ -303,7 +303,7 @@ There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each res
 
 ### 3.4 Dealing with special cases
 
-As mentioned before there are a few cases to deal which only happen in a negligibly small subset of inputs (besides division by zero).
+As mentioned before there are a few cases to deal with which only happen in a negligibly small subset of inputs (besides division by zero).
 For cryptographically sized curves, if only random inputs are going to be considered, it is unnecessary to deal with these. Still, for completeness
 we analyse them here. They generally fall into two categories: cases in which the encoder would produce $t$ values that
 do not decode back to $x$ (or at least cannot guarantee that they do), and cases in which the encoder might produce the same
