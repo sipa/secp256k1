@@ -345,7 +345,7 @@ Specialized for odd-ordered $a=0$ curves:
 * If $u=0$, return $\bot$.
 * If $c \in \\{0, 1, 4, 5\\}$:
   * If $g(-u-x)$ is square, return $\bot$
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by 0).
+  * Let $s = -(u^3 + b)/(u^2 + ux + x^2)$ (cannot cause division by 0).
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
