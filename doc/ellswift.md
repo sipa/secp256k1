@@ -88,8 +88,7 @@ $$
 X(u, t) = \left\\{\begin{array}{ll}
   \dfrac{g(u) - t^2}{2t} & a = 0 \\
   \dfrac{g(u) + h(u)(Y_0(u) + tX_0(u))^2}{X_0(u)(1 + t^2 h(u))} & a \neq 0
-\end{array}\right.
-
+\end{array}\right. \\
 Y(u, t) = \left\\{\begin{array}{ll}
   \dfrac{X(u, t) + t}{u \sqrt{-3}} & a = 0 \\
   Y_0(u) + t(X(u, t) - X_0(u)) & a \neq 0
