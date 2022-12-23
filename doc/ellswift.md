@@ -31,7 +31,7 @@ the curve.
 
 **Decoding** consists of decoding the field elements $u$ and $t$ (values above the field size $p$
 are taken modulo $p$), and then evaluating $F_u(t)$, which for every $u$ and $t$ results in a valid
-x-coordinate on the curve. The functions $F_u$ will be defined later.
+x-coordinate on the curve. The functions $F_u$ will be defined in [Section 2](#2-the-decoding-function).
 
 **Encoding** a given $x$ coordinate is conceptually done as follows:
 * Loop:
@@ -50,7 +50,7 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$, of characteristic 5 or more, and $q = 1 \mod 3.$
+* $\mathbb{F}$ is the finite field of size $q$, of characteristic 5 or more, and $q \equiv 1 \mod 3.$
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$, which satisfies that requirement.
 * Let $E$ be the elliptic curve of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, for which $\Delta_E = -16(4a^3 + 27b^2)$ is a square, and at least one of $(-b \pm \sqrt{-3 \Delta_E} / 36)/2$ is a square.
@@ -61,8 +61,8 @@ First some definitions:
 * Let the function $h(x) = 3x^3 + 4a.$
 * Define $V$ as the set of solutions $(x_1, x_2, x_3, z)$ to $z^2 = g(x_1)g(x_2)g(x_3).$
 * Define $S_u$ as the set of solutions $(X, Y)$ to $X^2 + h(u)Y^2 = -g(u)$ and $Y \neq 0.$
-* $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined later.
-* $\psi_u$ is a function from $S_u$ to $V$ that will be defined later.
+* $P_u$ is a function from $\mathbb{F}$ to $S_u$ that will be defined below.
+* $\psi_u$ is a function from $S_u$ to $V$ that will be defined below.
 
 **Note**: In the paper:
 * $F_u$ corresponds to $F_{0,u}$ there.
@@ -160,7 +160,7 @@ The function $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$, is significantl
 $$
 P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
 Yu\sqrt{-3} - X & a = 0 \\
-\dfrac{Y-Y_0}{X-X_0} & a \neq 0
+\dfrac{Y-Y_0(u)}{X-X_0(u)} & a \neq 0
 \end{array}\right.
 $$
 
@@ -325,11 +325,11 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
     This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
     A similar concern for $w = -w$ does not exist, as $w=0$ is already impossible in both branches: in the first
     it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero.
-* In the implementation of $S_u^{'-1}$, special cases can occur:
+* In the implementation of $P_u^{'-1}$, special cases can occur:
   * For $a=0$ curves, $u=0$ and $t=0$ need to be avoided as they would trigger division by zero in the decoder.
     The latter is only possible when $g(u)=0$ and can thus only occur on even-ordered curves.
   * For $a \neq 0$ curves, $h(u)t^2 = -1$ needs to be avoided as it would trigger division by zero in the decoder.
-    Furthermore, $X=X_0$ is possible and would trigger division by zero in the encoder.
+    Furthermore, $w(u/2 + v)=X_0(u)$ triggers division by zero in the encoder.
 
 **Define** a version of $G_{c,u}(x)$ which deals with all these cases:
 * If $c \in \\{0, 1, 4, 5\\}:$
@@ -353,9 +353,9 @@ Given any $u$, using this algorithm over all $x$ and $c$ values, every $t$ value
 for an $x$ for which $F_u(t) = x$ holds, except for these cases that will not be reached:
 * (Obviously) all cases where $P_u(t)$ is not defined:
   * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2.$
-  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t).$
+  * For $a \neq 0$ curves, the cases where $h(u)t^2 = -1$ or $g(u)t = (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t).$
 * When $g(u)=0$, the potentially many $t$ values that decode to an $x$ satisfying $g(x)=0$ using the $x_2$ formula. These were excluded by the $g(u)=0$ condition in the $c \in \\{0, 1, 4, 5\\}$ branch.
-* For $a \neq 0$ curves, the cases where $2h(u)X_0(u)Y_0(u)t = g(u) + h(u)Y_0(u)^2 - X_0(u)^2$ as the encoder cannot target these (division by zero in $P_u^{-1}$).
+* For $a \neq 0$ curves, the cases where $2h(u)X_0(u)Y_0(u)t = g(u) + h(u)Y_0(u)^2 - X_0(u)^2$ as the encoder cannot target these (the $w(u/2 + v) = X_0(u)$ division by zero).
 
 These cases form a negligible subset of all $(u, t)$ for cryptographically sized curves.
 
@@ -394,7 +394,7 @@ And the x-only ElligatorSwift encoding algorithm is still:
 
 Note that this logic does not take the remapped $u=0$, $t=0$, and $g(u) = -t^2$ cases into account; it just avoids them.
 While it is not impossible to make the encoder target them, this would increase the maximum number of $t$ values for a given $(u, x)$
-combination beyond 8, and thereby slow down the ElligatorSwift loop proportionally, for a negligible gain.
+combination beyond 8, and thereby slow down the ElligatorSwift loop proportionally, for a negligible gain in uniformity.
 
 ## 4. Encoding and decoding full *(x, y)* coordinates
 
@@ -451,7 +451,7 @@ value, and has the property that $sign(-x) = -sign(x).$
 
 For $a=0$ curves, there is another option. Note that for those,
 the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y.$ Thus, we can use $sign(t)$ to
-encode the y-coordinate. Combined with the earlier remapping to guarantee all inputs land on the curve, we get
+encode the y-coordinate directly. Combined with the earlier remapping to guarantee all inputs land on the curve, we get
 as decoder:
 
 **Define** *Decode(u, t)* as:
