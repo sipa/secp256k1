@@ -26,7 +26,7 @@ from and to this format, as well as convenience functions for key generation and
 directly on ellswift-encoded keys.
 
 The encoding consists of the concatenation of two (32-byte big endian) encoded field elements $u$
-and $t$. Together they encode an x-coordinate on the curve $x$, or (see further) a full point $(x, y)$ on
+and $t.$ Together they encode an x-coordinate on the curve $x$, or (see further) a full point $(x, y)$ on
 the curve.
 
 **Decoding** consists of decoding the field elements $u$ and $t$ (values above the field size $p$
@@ -43,7 +43,7 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
 This is the *ElligatorSwift* algorithm, here given for just x-coordinates. An extension to full
 $(x, y)$ points will be given in [Section 4](#4-encoding-and-decoding-full-x-y-coordinates).
 The algorithm finds a uniformly random $(u, t)$ among (almost all) those
-for which $F_u(t) = x$. Section 3.2 in the paper proves that the number of such encodings for
+for which $F_u(t) = x.$ Section 3.2 in the paper proves that the number of such encodings for
 almost all x-coordinates on the curve (all but at most 39) is close to two times the field size
 (specifically, it lies in the range $2q \pm (22\sqrt{q} + O(1))$, where $q$ is the size of the field).
 
@@ -71,18 +71,18 @@ First some definitions:
 * All $\psi_u$ functions together (operating on elements of $S$) correspond to $\psi$ there.
 
 Note that for $V$, the left hand side of the equation $z^2$ is square, and thus the right
-hand must also be square. As multiplying non-squares results in a square in $\mathbb{F},$
+hand must also be square. As multiplying non-squares results in a square in $\mathbb{F}$,
 out of the three right-hand side factors an even number must be non-squares.
 This implies that exactly *1* or exactly *3* out of
-$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V,$
-at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E$. There is one exception
-to this, namely when $z=0,$ but even then one of the three values is a valid x-coordinate.
+$\\{g(x_1), g(x_2), g(x_3)\\}$ must be square, and thus that for any $(x_1,x_2,x_3,z) \in V$,
+at least one of $\\{x_1, x_2, x_3\\}$ must be a valid x-coordinate on $E.$ There is one exception
+to this, namely when $z=0$, but even then one of the three values is a valid x-coordinate.
 
 **Define** the decoding function $F_u(t)$ as:
 * Let $(x_1, x_2, x_3, z) = \psi_u(P_u(t)).$
 * Return the first element $x$ of $(x_3, x_2, x_1)$ which is a valid x-coordinate on $E$ (i.e., $g(x)$ is square).
 
-$P_u(t) = (X(u, t), Y(u, t)),$ where:
+$P_u(t) = (X(u, t), Y(u, t))$, where:
 
 $$
 \begin{array}{lcl}
@@ -98,16 +98,16 @@ Y(u, t) & = & \left\\{\begin{array}{ll}
 $$
 
 $P_u(t)$ is defined:
-* For $a=0,$ when:
+* For $a=0$, when:
   * $u \neq 0$ and $t \neq 0$ (division by zero)
   * $g(u) \neq -t^2$ (would give $Y=0$).
 * For $a \neq 0$, when:
   * $h(u)t^2 \neq -1$ (division by zero)
   * $g(u)t \neq (X_0(u)t - Y_0(u))(X_0(u) + h(u)Y_0(u)t)$ (would give $Y=0$).
 
-The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E$.
+The functions $X_0(u)$ and $Y_0(u)$ are defined in Appendix A of the paper, and depend on various properties of $E.$
 
-The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z),$ where:
+The function $\psi_u$ is the same for all curves: $\psi_u(X, Y) = (x_1, x_2, x_3, z)$, where:
 
 $$
 \begin{array}{lcl}
@@ -150,12 +150,12 @@ in `secp256k1_ellswift_xswiftec_var` (which outputs the actual x-coordinate).
 ## 3. The encoding function
 
 To implement $F_u^{-1}(x)$, the function to find the set of inverses $t$ for which $F_u(t) = x$, we have to reverse the process:
-* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1,$ $x_2,$ or $x_3$ formulas in $\psi_u.$
+* Find all the $(X, Y) \in S_u$ that could have given rise to $x$, through the $x_1$, $x_2$, or $x_3$ formulas in $\psi_u.$
 * Map those $(X, Y)$ solutions to $t$ values using $P_u^{-1}(X, Y).$
 * For each of the found $t$ values, verify that $F_u(t) = x.$
 * Return the remaining $t$ values.
 
-The function $P_u^{-1},$ which finds $t$ given $(X, Y) \in S_u,$ is significantly simpler than $P_u$:
+The function $P_u^{-1}$, which finds $t$ given $(X, Y) \in S_u$, is significantly simpler than $P_u:$
 
 $$
 P_u^{-1}(X, Y) = \left\\{\begin{array}{ll}
@@ -173,8 +173,8 @@ the case where either $x_1$ or $x_2$ is valid and in addition also $x_3$ is vali
 This means that instead of checking whether $x_3$ is on the curve, it is also possible to check whether the other one out of
 $x_1$ and $x_2$ is on the curve. This is significantly simpler, as it turns out.
 
-Observe that $\psi_u$ guarantees that $x_1 + x_2 = -u$. So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
-$-u - x$. Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $g(-u-x)$ is a square,
+Observe that $\psi_u$ guarantees that $x_1 + x_2 = -u.$ So given either $x = x_1$ or $x = x_2$, the other one of the two can be computed as
+$-u - x.$ Thus, when encoding $x$ through the $x_1$ or $x_2$ expressions, one can simply check whether $g(-u-x)$ is a square,
 and if so, not include the corresponding $t$ values in the returned set. As this does not need $X$, $Y$, or $t$, this condition can be determined
 before those values are computed.
 
@@ -186,10 +186,10 @@ any other order requires more complicated round-trip checks in the encoder.
 
 ### 3.1 Switching to *v, w* coordinates
 
-Before working out the formulas for all this, we switch to different variables for $S_u$. Let $v = (X/Y - u)/2$, and
-$w = 2Y$. Or in the other direction, $X = w(u/2 + v)$ and $Y = w/2$:
-* $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$ and $w \neq 0$.
-* For $a=0$ curves, $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\frac{\sqrt{-3}-1}{2}u - v\right)$.
+Before working out the formulas for all this, we switch to different variables for $S_u.$ Let $v = (X/Y - u)/2$, and
+$w = 2Y.$ Or in the other direction, $X = w(u/2 + v)$ and $Y = w/2:$
+* $S_u'$ becomes the set of $(v, w)$ for which $w^2 (u^2 + uv + v^2 + a) = -g(u)$ and $w \neq 0.$
+* For $a=0$ curves, $P_u^{-1}$ can be stated for $(v,w)$ as $P_u^{'-1}(v, w) = w\left(\frac{\sqrt{-3}-1}{2}u - v\right).$
 * $\psi_u$ can be stated for $(v, w)$ as $\psi_u'(v, w) = (x_1, x_2, x_3, z)$, where
 
 $$
@@ -203,9 +203,9 @@ $$
 
 We can now write the expressions for finding $(v, w)$ given $x$ explicitly, by solving each of the $\\{x_1, x_2, x_3\\}$
 expressions for $v$ or $w$, and using the $S_u'$ equation to find the other variable:
-* Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}$.
-* Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}$.
-* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = -u/2 \pm \sqrt{-w^2(4g(u) + w^2h(u))}/(2w^2)$.
+* Assuming $x = x_1$, we find $v = x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}.$
+* Assuming $x = x_2$, we find $v = -u-x$ and $w = \pm\sqrt{-g(u)/(u^2 + uv + v^2 + a)}.$
+* Assuming $x = x_3$, we find $w = \pm\sqrt{x-u}$ and $v = -u/2 \pm \sqrt{-w^2(4g(u) + w^2h(u))}/(2w^2).$
 
 ### 3.2 Avoiding computing all inverses
 
@@ -228,7 +228,7 @@ Now notice that the order of elements in $T$ does not matter, as all we do is pi
 random element in it, so we do not need to have all $\bot$ values at the end.
 As we have 8 distinct formulas for finding $(v, w)$ (taking the variants due to $\pm$ into account),
 we can associate every index in $T$ with exactly one of those formulas, making sure that:
-* Formulas that yield no solutions, including due to division by zero or taking the square root of a non-square, are made to return $\bot$.
+* Formulas that yield no solutions, including due to division by zero or taking the square root of a non-square, are made to return $\bot.$
 * For the $x_1$ and $x_2$ cases, if $g(-u-x)$ is a square, $\bot$ is returned instead (the round-trip check).
 * In case multiple formulas would return the same non- $\bot$ result, all but one of those must be turned into $\bot$ to avoid biasing those.
 
@@ -260,13 +260,13 @@ Ignoring the negligible cases, we get:
   * If $c \in \\{0, 4\\}$ (the $x_1$ formula) let $v = x$, otherwise let $v = -u-x$ (the $x_2$ formula)
   * Let $s = -g(u)/(u^2 + uv + v^2 + a)$ (using $s = w^2$ in what follows).
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$ (for $x_3$ formulas):
-  * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
+  * Let $s = x-u.$
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}.$
   * Let $v = (r/s - u)/2$ if $c \in \\{3, 7\\}$; $(-r/s - u)/2$ otherwise.
-* Let $w = \sqrt{s}$.
-* Depending on $c$:
-  * If $c \in \\{0, 1, 2, 3\\}$: return $P_u^{'-1}(v, w)$.
-  * If $c \in \\{4, 5, 6, 7\\}$: return $P_u^{'-1}(v, -w)$.
+* Let $w = \sqrt{s}.$
+* Depending on $c:$
+  * If $c \in \\{0, 1, 2, 3\\}:$ return $P_u^{'-1}(v, w).$
+  * If $c \in \\{4, 5, 6, 7\\}:$ return $P_u^{'-1}(v, -w).$
 
 Whenever a square root of a non-square is taken, $\bot$ is returned; for both square roots this happens with roughly
 50% on random inputs. Similarly, when a division by 0 would occur, $\bot$ is returned as well; this will only happen
@@ -276,14 +276,14 @@ and $\bot$ would have been returned already.
 
 **Note**: In the paper, the $case$ variable corresponds roughly to the $c$ above, but only takes on 4 possible values (1 to 4).
 The conditional negation of $w$ at the end is done randomly, which is equivalent, but makes testing harder. We choose to
-have the $G_{c,u}$ be deterministic, and capture all choices in $c$.
+have the $G_{c,u}$ be deterministic, and capture all choices in $c.$
 
 Now observe that the $c \in \\{1, 5\\}$ and $c \in \\{3, 7\\}$ conditions effectively perform the same $v \rightarrow -u-v$
 transformation. Furthermore, that transformation has no effect on $s$ in the first branch
-as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it out and move it down:
+as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a.$ Thus we can extract it out and move it down:
 
 **Define** $G_{c,u}(x)$ as:
-* If $c \in \\{0, 1, 4, 5\\}$:
+* If $c \in \\{0, 1, 4, 5\\}:$
   * If $g(-u-x)$ is square, return $\bot.$
   * Let $s = -g(u)/(u^2 + ux + x^2 + a).$
   * Let $v = x.$
@@ -291,12 +291,12 @@ as $u^2 + ux + x^2 + a = u^2 + u(-u-x) + (-u-x)^2 + a$. Thus we can extract it o
   * Let $s = x-u.$
   * Let $r = \sqrt{-s(4g(u) + sh(u))}.$
   * Let $v = (r/s - u)/2.$
-* Let $w = \sqrt{s}$.
-* Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w).$
-  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w).$
-  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w).$
-  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w).$
+* Let $w = \sqrt{s}.$
+* Depending on $c:$
+  * If $c \in \\{0, 2\\}:$ return $P_u^{'-1}(v, w).$
+  * If $c \in \\{1, 3\\}:$ return $P_u^{'-1}(-u-v, w).$
+  * If $c \in \\{4, 6\\}:$ return $P_u^{'-1}(v, -w).$
+  * If $c \in \\{5, 7\\}:$ return $P_u^{'-1}(-u-v, -w).$
 
 This shows there will always be exactly 0, 4, or 8 $t$ values for a given $(u, x)$ input.
 There can be 0, 1, or 2 $(v, w)$ pairs before invoking $P_u^{'-1}$, and each results in 4 distinct $t$ values.
@@ -310,7 +310,7 @@ do not decode back to $x$ (or at least cannot guarantee that they do), and cases
 $t$ value for multiple $c$ inputs (thereby biasing that encoding):
 
 * In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}$):
-  * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u$. This is only possible on even-ordered curves.
+  * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u.$ This is only possible on even-ordered curves.
     Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
     fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
     This does exclude some valid encodings: when both $g(u)=0$ and $u^2+ux+x^2+a=0$ (also implying $g(x)=0$),
@@ -326,28 +326,28 @@ $t$ value for multiple $c$ inputs (thereby biasing that encoding):
     it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero.
 
 **Define** a version of $G_{c,u}(x)$ which deals with all these cases:
-* If $c \in \\{0, 1, 4, 5\\}$:
+* If $c \in \\{0, 1, 4, 5\\}:$
   * If $g(u) = 0$ or $g(x) = 0$, return $\bot$ (even curves only).
-  * If $g(-u-x)$ is square, return $\bot$.
+  * If $g(-u-x)$ is square, return $\bot.$
   * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by zero).
-  * Let $v = x$.
-* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
-  * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
-  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot$.
-  * Let $v = (r/s - u)/2$.
-* Let $w = \sqrt{s}$.
-* Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
-  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
-  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
-  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
+  * Let $v = x.$
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}:$
+  * Let $s = x-u.$
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}.$
+  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot.$
+  * Let $v = (r/s - u)/2.$
+* Let $w = \sqrt{s}.$
+* Depending on $c:$
+  * If $c \in \\{0, 2\\}:$ return $P_u^{'-1}(v, w).$
+  * If $c \in \\{1, 3\\}:$ return $P_u^{'-1}(-u-v, w).$
+  * If $c \in \\{4, 6\\}:$ return $P_u^{'-1}(v, -w).$
+  * If $c \in \\{5, 7\\}:$ return $P_u^{'-1}(-u-v, -w).$
 
 Given any $u$, using this algorithm over all $x$ and $c$ values, every $t$ value will be reached exactly once,
 for an $x$ for which $F_u(t) = x$ holds, except for these cases that will not be reached:
 * (Obviously) all cases where $P_u(t)$ is not defined:
-  * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2$.
-  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (tX_0 - Y_0)(h(u)tY_0 + X_0)$.
+  * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2.$
+  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (tX_0 - Y_0)(h(u)tY_0 + X_0).$
 * When $g(u)=0$, the potentially many $t$ values that decode to an $x$ satisfying $g(x)=0$ using the $x_2$ formula. These were excluded by the $g(u)=0$ condition in the $c \in \\{0, 1, 4, 5\\}$ branch.
 * For $a \neq 0$ curves, the cases where $2h(u)tX_0Y_0 = g(u) + h(u)Y_0^2 - X_0^2$ as the encoder cannot target these (division by zero in $P_u^{-1}$).
 
@@ -358,22 +358,22 @@ These cases form a negligible subset of all $(u, t)$ for cryptographically sized
 Specialized for odd-ordered $a=0$ curves:
 
 **Define** $G_{c,u}(x)$ as:
-* If $u=0$, return $\bot$.
-* If $c \in \\{0, 1, 4, 5\\}$:
+* If $u=0$, return $\bot.$
+* If $c \in \\{0, 1, 4, 5\\}:$
   * If $(-u-x)^3 + b$ is square, return $\bot$
   * Let $s = -(u^3 + b)/(u^2 + ux + x^2)$ (cannot cause division by 0).
-  * Let $v = x$.
-* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
-  * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4(u^3 + b) + 3su^2)}$.
-  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot$.
-  * Let $v = (r/s - u)/2$.
-* Let $w = \sqrt{s}$.
-* Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $w(\frac{\sqrt{-3}-1}{2}u - v)$.
-  * If $c \in \\{1, 3\\}$: return $w(\frac{\sqrt{-3}+1}{2}u + v)$.
-  * If $c \in \\{4, 6\\}$: return $w(\frac{-\sqrt{-3}+1}{2}u + v)$.
-  * If $c \in \\{5, 7\\}$: return $w(\frac{-\sqrt{-3}-1}{2}u - v)$.
+  * Let $v = x.$
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}:$
+  * Let $s = x-u.$
+  * Let $r = \sqrt{-s(4(u^3 + b) + 3su^2)}.$
+  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot.$
+  * Let $v = (r/s - u)/2.$
+* Let $w = \sqrt{s}.$
+* Depending on $c:$
+  * If $c \in \\{0, 2\\}:$ return $w(\frac{\sqrt{-3}-1}{2}u - v).$
+  * If $c \in \\{1, 3\\}:$ return $w(\frac{\sqrt{-3}+1}{2}u + v).$
+  * If $c \in \\{4, 6\\}:$ return $w(\frac{-\sqrt{-3}+1}{2}u + v).$
+  * If $c \in \\{5, 7\\}:$ return $w(\frac{-\sqrt{-3}-1}{2}u - v).$
 
 This is implemented in `secp256k1_ellswift_xswiftec_inv_var`.
 
@@ -381,9 +381,9 @@ And the x-only ElligatorSwift encoding algorithm is still:
 
 **Define** *ElligatorSwift(x)* as:
 * Loop:
-  * Pick a uniformly random field element $u$.
-  * Pick a uniformly random integer $c$ in $[0,8)$.
-  * Let $t = G_{c,u}(x)$.
+  * Pick a uniformly random field element $u.$
+  * Pick a uniformly random integer $c$ in $[0,8).$
+  * Let $t = G_{c,u}(x).$
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
 Note that this logic does not take the remapped $u=0$, $t=0$, and $g(u) = -t^2$ cases into account; it just avoids them.
@@ -396,71 +396,71 @@ So far we have only addressed encoding and decoding x-coordinates, but in some c
 for full points with $(x, y)$ coordinates is desirable. It is possible to encode this information
 in $t$ as well.
 
-Note that for any $(X, Y) \in S_u$, $(\pm X, \pm Y)$ are all on $S_u$. Moreover, all of these are
+Note that for any $(X, Y) \in S_u$, $(\pm X, \pm Y)$ are all on $S_u.$ Moreover, all of these are
 mapped to the same x-coordinate. Negating $X$ or negating $Y$ just results in $x_1$ and $x_2$
-being swapped, and does not affect $x_3$. This will not change the outcome x-coordinate as the order
+being swapped, and does not affect $x_3.$ This will not change the outcome x-coordinate as the order
 of $x_1$ and $x_2$ only matters if both were to be valid, and in that case $x_3$ would be used instead.
 
 Still, these four $(X, Y)$ combinations all correspond to distinct $t$ values, so we can encode
-the sign of the y-coordinate in the sign of $X$ or the sign of $Y$. They correspond to the
-four distinct $P_u^{'-1}$ calls in the definition of $G_{u,c}$.
+the sign of the y-coordinate in the sign of $X$ or the sign of $Y.$ They correspond to the
+four distinct $P_u^{'-1}$ calls in the definition of $G_{u,c}.$
 
 **Note**: In the paper, the sign of the y coordinate is encoded in a separately-coded bit.
 
-To encode the sign of $y$ in the sign of $Y$:
+To encode the sign of $y$ in the sign of $Y:$
 
 **Define** *Decode(u, t)* for full $(x, y)$ as:
-* Let $(X, Y) = P_u(t)$.
+* Let $(X, Y) = P_u(t).$
 * Let $x$ be the first value in $(u + 4Y^2, \frac{-X}{2Y} - \frac{u}{2}, \frac{X}{2Y} - \frac{u}{2})$ for which $g(x)$ is square.
-* Let $y = \sqrt{g(x)}$.
-* If $sign(y) = sign(Y)$, return $(x, y)$; otherwise return $(x, -y)$.
+* Let $y = \sqrt{g(x)}.$
+* If $sign(y) = sign(Y)$, return $(x, y)$; otherwise return $(x, -y).$
 
 And encoding would be done using a $G_{c,u}(x, y)$ function defined as:
 
 **Define** $G_{c,u}(x, y)$ as:
-* If $c \in \\{0, 1\\}$:
+* If $c \in \\{0, 1\\}:$
   * If $g(u) = 0$ or $g(x) = 0$, return $\bot$ (even curves only).
-  * If $g(-u-x)$ is square, return $\bot$.
+  * If $g(-u-x)$ is square, return $\bot.$
   * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by zero).
-  * Let $v = x$.
-* Otherwise, when $c \in \\{2, 3\\}$:
-  * Let $s = x-u$.
-  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
-  * If $c = 3$ and $r = 0$, return $\bot$.
-  * Let $v = (r/s - u)/2$.
-* Let $w = \sqrt{s}$.
+  * Let $v = x.$
+* Otherwise, when $c \in \\{2, 3\\}:$
+  * Let $s = x-u.$
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}.$
+  * If $c = 3$ and $r = 0$, return $\bot.$
+  * Let $v = (r/s - u)/2.$
+* Let $w = \sqrt{s}.$
 * Let $w' = w$ if $sign(w/2) = sign(y)$; $-w$ otherwise.
-* Depending on $c$:
-  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w')$.
-  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w')$.
+* Depending on $c:$
+  * If $c \in \\{0, 2\\}:$ return $P_u^{'-1}(v, w').$
+  * If $c \in \\{1, 3\\}:$ return $P_u^{'-1}(-u-v, w').$
 
-Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on that of $y$, rather than on $c$.
+Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on that of $y$, rather than on $c.$
 
 In the above logic, $sign$ can be implemented in several ways, such as parity of the integer representation
 of the input field element (for prime-sized fields) or the quadratic residuosity (for fields where
 $-1$ is not square). The choice does not matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
-value, and has the property that $sign(-x) = -sign(x)$.
+value, and has the property that $sign(-x) = -sign(x).$
 
 ### 4.1 Full *(x, y)* coordinates for `secp256k1`
 
 For $a=0$ curves, there is another option. Note that for those,
-the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y$. Thus, we can use $sign(t)$ to
+the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y.$ Thus, we can use $sign(t)$ to
 encode the y-coordinate. Combined with the earlier remapping to guarantee all inputs land on the curve, we get
 as decoder:
 
 **Define** *Decode(u, t)* as:
-* Let $u'=u$ unless $u=0$, in which case $u'=1$.
-* Let $t'=t$ unless $t=0$, in which case $t'=1$.
-* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'$.
-* Let $X = \dfrac{u'^3 + b - t''^2}{2t''}$.
-* Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}$.
+* Let $u'=u$ unless $u=0$, in which case $u'=1.$
+* Let $t'=t$ unless $t=0$, in which case $t'=1.$
+* Let $t''=t'$ unless $u'^3 + b + t'^2 = 0$, in which case $t''=2t'.$
+* Let $X = \dfrac{u'^3 + b - t''^2}{2t''}.$
+* Let $Y = \dfrac{X + t''}{u'\sqrt{-3}}.$
 * Let $x$ be the first element of $(u' + 4Y^2, \frac{-X}{2Y} - \frac{u'}{2}, \frac{X}{2Y} - \frac{u'}{2})$ for which $g(x)$ is square.
-* Let $y = \sqrt{g(x)}$.
-* If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y)$.
+* Let $y = \sqrt{g(x)}.$
+* If $sign(y) = sign(t)$, return $(x, y)$; otherwise return $(x, -y).$
 
-This is implemented in `secp256k1_ellswift_swiftec_var`. The used $sign(x)$ function is the parity of $x$ when represented as in integer in $[0,q)$.
+This is implemented in `secp256k1_ellswift_swiftec_var`. The used $sign(x)$ function is the parity of $x$ when represented as in integer in $[0,q).$
 
-The corresponding encoder would invoke the x-only one, but negating the output $t$ if $sign(t) \neq sign(y)$.
+The corresponding encoder would invoke the x-only one, but negating the output $t$ if $sign(t) \neq sign(y).$
 
 This is implemented in `secp256k1_ellswift_elligatorswift_var`.
 
