@@ -1,4 +1,4 @@
-# Elligator Swift for secp256k1 explained
+# ElligatorSwift for secp256k1 explained
 
 In this document we explain how the `ellswift` module implementation is related to the
 construction in the
@@ -40,7 +40,8 @@ x-coordinate on the curve. The functions $F_u$ will be defined later.
   * Select a uniformly random $t \in L$ and return $(u, t)$.
 
 This is the *ElligatorSwift* algorithm, here given for just x-coordinates. An extension to full
-$(x, y)$ points will be given later. The algorithm finds a uniformly random $(u, t)$ among (almost all) those
+$(x, y)$ points will be given in [Section 4](#4-encoding-and-decoding-full-x-y-coordinates).
+The algorithm finds a uniformly random $(u, t)$ among (almost all) those
 for which $F_u(t) = x$. Section 3.2 in the paper proves that the number of such encodings for
 almost all x-coordinates on the curve (all but at most 39) is close to two times the field size
 (specifically, it lies in the range $2q \pm (22\sqrt{q}-O(1))$, where $q$ is the size of the field).
@@ -48,7 +49,7 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 ## 2. The decoding function
 
 First some definitions:
-* $\mathbb{F}$ is the finite field of size $q$ (where $q \equiv 1 (mod\\,3)$ and with characteristic 5 or higher).
+* $\mathbb{F}$ is the finite field in which *-3* is a square.
   * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
 * Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
   public constants, that satisfy the conditions in Section 4.2 of the paper.
