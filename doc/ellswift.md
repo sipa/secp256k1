@@ -51,9 +51,10 @@ almost all x-coordinates on the curve (all but at most 39) is close to two times
 
 First some definitions:
 * $\mathbb{F}$ is the finite field of size $q$, with the requirement that *-3* is a square.
-  * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$.
-* Let the curve $E$ be the set of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
-  public constants, that satisfy the conditions in Section 4.2 of the paper.
+  * For `secp256k1`, $q = 2^{256} - 2^{32} - 977$, which satisfies that requirement.
+* Let the curve $E$ be the elliptic curve of points $(x, y) \in \mathbb{F}^2$ for which $y^2 = x^3 + ax + b$, with $a$ and $b$
+  public constants, for which $-16(4a^3 + 27b^2)$ is a square, and at least one of $\frac{\pm\sqrt{12a^3 + 81b^2}-9b}{18}$ is a square.
+  If $a=0$, this condition is always fulfilled.
   * For `secp256k1`, $a=0$ and $b=7$.
 * Let the function $g(x) = x^3 + ax + b$, so the $E$ curve equation is also $y^2 = g(x)$.
 * Let the function $h(x) = 3x^3 + 4a$.
@@ -447,3 +448,8 @@ This is implemented in `secp256k1_ellswift_swiftec_var`. The used $sign(x)$ func
 The corresponding encoder would invoke the x-only one, but negating the output $t$ if $sign(t) \neq sign(y)$.
 
 This is implemented in `secp256k1_ellswift_elligatorswift_var`.
+
+Note that this is only intended for encoding points where both the x-coordinate and y-coordinate are unpredictable. When encoding x-only points
+where the y-coordinate is implicitly even (or implicitly square, or implicitly in $[0,q/2)$), the encoder in
+[Section 3.5](#35-encoding-for-secp256k1) must be used, or a bias is reintroduced that undoes all the benefit of using ElligatorSwift
+in the first place.
