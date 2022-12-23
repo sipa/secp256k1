@@ -114,7 +114,7 @@ Put together and specialized for $a=0$ curves, decoding $(u, t)$ to an x-coordin
 * Return the first $x$ in $(u + 4Y^2, \dfrac{-X}{2Y} - \dfrac{u}{2}, \dfrac{X}{2Y} - \dfrac{u}{2})$ for which $g(x)$ is square.
 
 To make sure that every input decodes to a valid x-coordinate, we adjust the input in case
-$P_u$ fails ($u=0$, $t=0$, or $g(u) = -t^2$):
+$P_u$ fails (when $u=0$, $t=0$, or $g(u) = -t^2$):
 * Let $u'=u$ unless $u=0$, in which case $u'=1$ (guaranteeing $u' \neq 0$).
 * Let $t'=t$ unless $t=0$, in which case $t'=1$ (guaranteeing $t' \neq 0$).
 * Let $t''=t'$ unless $g(u') = -t'^2$, in which case $t''=2t'$ (guaranteeing $t'' \neq 0$ *and* $g(u') \neq -t'^2$).
@@ -291,30 +291,51 @@ we analyse them here. They generally fall into two categories: cases in which th
 don't decode back to $x$ (or at least can't guarantee they they do), and cases in which the encoder might produce the same
 $t$ value for multiple $c$ inputs (thereby biasing that encoding):
 
-* In the branch for $x_1$ and $x_2$ ($c \in \\{0, 1, 4, 5\\}):
+* In the branch for $x_1$ and $x_2$ (where $c \in \\{0, 1, 4, 5\\}):
   * When $g(u) = 0$, we would have $s=w=Y=0$, which is not on $S_u$. This is only possible on even-ordered curves.
     Excluding this also removes the one condition under which the simplified check for $x_3$ on the curve
     (squareness of $g(-u-x)$) fails (namely when $g(x_1)=g(x_2)=0$ but $g(x_3)$ is not square).
     This does exclude some valid encodings: when both $g(u)=0$ and $u^2+ux+x^2+a=0$ (also implying $g(x)=0$),
-    the division is undefined, and *many* valid $t$ values exist. We still exclude these in the encoder, as there
-    may be more than 8, so they cannot all be mapped to individual $c$ values.
-  * When $g(x) = 0$, the same $t$ would be produced in the $x_3$ branch ($c \in \\{2, 3, 6, 7\\}), which we give precedence.
+    the division is undefined, and many valid $t$ values may exist. Yet, these cannot be targetted uniformly by the
+    encoder anyway as there will generally be more than 8.
+  * When $g(x) = 0$, the same $t$ would be produced as in the $x_3$ branch (where $c \in \\{2, 3, 6, 7\\}) which we give precedence.
     This is again only possible on even-ordered curves.
-* In the branch for $x_3$ ($c \in \\{2, 3, 6, 7\\}):
-  * When $u = -u-v$, the same $t$ would be returned in the $c \in \\{2, 6\\}$ vs. $\\{3, 7\\}$ cases.
+* In the branch for $x_3$ (where $c \in \\{2, 3, 6, 7\\}):
+  * When $u = -u-v$ and $c \in \\{3, 7\\}$, the same $t$ would be returned as in the $c \in \\{2, 6\\}$ cases.
+    It is equivalent to checking whether the square root is zero.
     This cannot occur in the $x_1$ / $x_2$ branch, as it would trigger the $g(-u-x)$ is square condition.
-    A similar concern for $w = -w$ doesn't exist, as $w=0$ is already impossible in both branches (in the first
-    it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero).
-* On $a=0$ curves:
-  * When $u = 0$, as $S_u$ is not defined then.
-  * When $v = \sqrt{-3}u$, as $t=0$ would be output which is not valid. This condition implies $u^2 + uv + v^2 + a = 0$,
-    and thus requires $g(u)=0$ as otherwise the $S_u'$ equation would not be satisfied. Because of this, it can only
-    occur on even-ordered curves.
-* On $a \neq 0$ curves:
-  * When a $t$ value satisfying $h(u)t^2 = -1$ would be returned, as such inputs aren't valid for $P_u$.
-  * When $X = X_0$, computing $t$ would require a division by 0.
+    A similar concern for $w = -w$ doesn't exist, as $w=0$ is already impossible in both branches: in the first
+    it requires $g(u)=0$ which is already outlawed; in the second it would trigger division by zero.
 
-### 3.4 Encoding for odd-ordered *a=0* curves
+**Define** a version of $G_{c,u}(x)$ which deals with all these cases:
+* If $c \in \\{0, 1, 4, 5\\}$:
+  * If $g(u) = 0$ or $g(x) = 0$, return $\bot$ (even curves only).
+  * If $g(-u-x)$ is square, return $\bot$.
+  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by zero).
+  * Let $v = x$.
+* Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
+  * Let $s = x-u$.
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
+  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot$.
+  * Let $v = (r/s - u)/2$.
+* Let $w = \sqrt{s}$.
+* Depending on $c$:
+  * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w)$.
+  * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w)$.
+  * If $c \in \\{4, 6\\}$: return $P_u^{'-1}(v, -w)$.
+  * If $c \in \\{5, 7\\}$: return $P_u^{'-1}(-u-v, -w)$.
+
+Given any $u$, using this algorithm over all $x$ and $c$ values, every $t$ value will be reached exactly once,
+for an $x$ for which $F_u(t) = x$ holds, except for these cases that won't be reached:
+* (Obviously) all cases where $P_u(t)$ isn't defined:
+  * For $a=0$ curves, the cases where $u=0$, $t=0$, or $g(u) = -t^2$.
+  * For $a \neq 0$ curves, the cases where $t^2h(u) = -1$ or $g(u)t = (tX_0 - Y_0)(h(u)tY_0 + X_0)$.
+* When $g(u)=0$, the potentially many $t$ values that decode to an $x$ satisfying $g(x)=0$ using the $x_2$ formula. These were excluded by the $g(u)=0$ condition in the $c \in \\{0, 1, 4, 5\\}$ branch.
+* For $a \neq 0$ curves, the cases where $2h(u)tX_0Y_0 = g(u) + h(u)Y_0^2 - X_0^2$ as the encoder cannot target these (division by zero in $P_u^{-1}$).
+
+These cases form a negligible subset of all $(u, t)$ for cryptographically sized curves.
+
+### 3.5 Encoding for `secp256k1`
 
 Specialized for odd-ordered $a=0$ curves:
 
@@ -322,12 +343,13 @@ Specialized for odd-ordered $a=0$ curves:
 * If $u=0$, return $\bot$.
 * If $c \in \\{0, 1, 4, 5\\}$:
   * If $g(-u-x)$ is square, return $\bot$
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (note: can't cause division by 0).
+  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by 0).
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3, 6, 7\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
-  * If $c \in \\{3, 7\\}$ and $u + 2v = 0$, return $\bot$.
+  * Let $r = \sqrt{-s(4(u^3 + b) + 3su^2)}$.
+  * If $c \in \\{3, 7\\}$ and $r=0$, return $\bot$.
+  * Let $v = (r/s - u)/2$.
 * Let $w = \sqrt{s}$.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $w(\frac{\sqrt{-3}-1}{2}u - v)$.
@@ -346,10 +368,9 @@ And the x-only ElligatorSwift encoding algorithm is still:
   * Let $t = G_{c,u}(x)$.
   * If $t \neq \bot$, return $(u, t)$; restart loop otherwise.
 
-For the targetted curves, the $T = (G_{0,u}(x), \ldots, G_{7,u}(x))$ induced by the above
-$G_{c,u}$ implementation has the property that it contains every $t$ for which $F_u(t) = x$
-*exactly* once, with the exception of the remapped $u=0$, $t=0$, and $u^3 + b + t^2 = 0$
-cases, which happen with negligible probability.
+Note that this logic does not take the remapped $u=0$, $t=0$, and $g(u) = -t^2$ cases into account; it just avoids them.
+While it is not impossible to make the encoder target them, this would increase the maximum number of $t$ values for a given $(u, x)$
+combination beyond 8, and thereby slow down the ElligatorSwift loop proportionally, for a negligible gain.
 
 ## 4. Encoding and decoding full *(x, y)* coordinates
 
@@ -380,26 +401,29 @@ And encoding would be done using a $G_{c,u}(x, y)$ function defined as:
 
 **Define** $G_{c,u}(x, y)$ as:
 * If $c \in \\{0, 1\\}$:
-  * If $g(-u-x)$ is square, return $\bot$
-  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$.
+  * If $g(u) = 0$ or $g(x) = 0$, return $\bot$ (even curves only).
+  * If $g(-u-x)$ is square, return $\bot$.
+  * Let $s = -g(u)/(u^2 + ux + x^2 + a)$ (cannot cause division by zero).
   * Let $v = x$.
 * Otherwise, when $c \in \\{2, 3\\}$:
   * Let $s = x-u$.
-  * Let $v = (\sqrt{-s(4g(u) + sh(u))}/s - u)/2$.
+  * Let $r = \sqrt{-s(4g(u) + sh(u))}$.
+  * If $c = 3$ and $r = 0$, return $\bot$.
+  * Let $v = (r/s - u)/2$.
 * Let $w = \sqrt{s}$.
-* Let $w' = w$ if $sign(w/2) = sign(y)$; otherwise $w' = -w$.
+* Let $w' = w$ if $sign(w/2) = sign(y)$; $-w$ otherwise.
 * Depending on $c$:
   * If $c \in \\{0, 2\\}$: return $P_u^{'-1}(v, w')$.
   * If $c \in \\{1, 3\\}$: return $P_u^{'-1}(-u-v, w')$.
 
 Note that $c$ now only ranges $[0,4)$, as the sign of $w'$ is decided based on that of $y$, rather than on $c$.
 
-In the above $sign$ could be implemented in several ways, such as parity of the integer representation
+In the above logic, $sign$ can be implemented in several ways, such as parity of the integer representation
 of the input field element (for prime-sized fields) or the quadratic residuosity (for fields where
 $-1$ is not square). The choice doesn't matter, as long as $sign(0)=0$, and $1$ or $-1$ for every other
-value, and has the property that $-sign(x) = sign(-x)$.
+value, and has the property that $sign(-x) = -sign(x)$.
 
-### 4.1 Full *(x, y)* coordinates for *a=0* curves
+### 4.1 Full *(x, y)* coordinates for `secp256k1`
 
 For $a=0$ curves, there is another option. Note that for those,
 the $P_u(t)$ function translates negations of $t$ to negations of (both) $X$ and $Y$. Thus, we can use $sign(t)$ to
