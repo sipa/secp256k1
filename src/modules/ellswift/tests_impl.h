@@ -289,6 +289,27 @@ void run_ellswift_tests(void) {
         ret = secp256k1_ellswift_xdh(CTX, share32b, ell64b, ell64a, sec32a, NULL, NULL);
         CHECK(!ret || secp256k1_memcmp_var(share32a, share32b, 32) != 0);
     }
+
+    /* Test hash initializers. */
+    {
+        secp256k1_sha256 sha, sha_optimized;
+        static const unsigned char encode_tag[25] = "secp256k1_ellswift_encode";
+        static const unsigned char create_tag[25] = "secp256k1_ellswift_create";
+
+        /* Check that hash initialized by
+         * secp256k1_ellswift_sha256_init_encode has the expected
+         * state. */
+        secp256k1_sha256_initialize_tagged(&sha, encode_tag, sizeof(encode_tag));
+        secp256k1_ellswift_sha256_init_encode(&sha_optimized);
+        test_sha256_eq(&sha, &sha_optimized);
+
+        /* Check that hash initialized by
+         * secp256k1_ellswift_sha256_init_create has the expected
+         * state. */
+        secp256k1_sha256_initialize_tagged(&sha, create_tag, sizeof(create_tag));
+        secp256k1_ellswift_sha256_init_create(&sha_optimized);
+        test_sha256_eq(&sha, &sha_optimized);
+    }
 }
 
 #endif
