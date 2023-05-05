@@ -147,9 +147,9 @@ static void secp256k1_ellswift_swiftec_var(secp256k1_ge *p, const secp256k1_fe *
     secp256k1_ge_set_xo_var(p, &x, secp256k1_fe_is_odd(t));
 }
 
-/* Try to complete an ElligatorSwift encoding (u, t) for X coordinate x, given u and x.
+/* Try to complete an ElligatorSwift encoding (u, t) for point p, given u and p.
  *
- * There may be up to 8 distinct t values such that (u, t) decodes back to x, but also
+ * There may be up to 4 distinct t values such that (u, t) decodes back to p, but also
  * fewer, or none at all. Each such partial inverse can be accessed individually using a
  * distinct input argument c (in range 0-7), and some or all of these may return failure.
  * The following guarantees exist:
@@ -160,13 +160,8 @@ static void secp256k1_ellswift_swiftec_var(secp256k1_ge *p, const secp256k1_fe *
  *   - this function cannot be called with u=0
  *   - no result with t=0 will be returned
  *   - no result for which u^3 + t^2 + 7 = 0 will be returned.
- *
- * The rather unusual encoding of bits in c (a large "if" based on the middle bit, and then
- * using the low and high bits to pick signs of square roots) is to match the paper's
- * encoding more closely: c=0 through c=3 match branches 1..4 in the paper, while c=4 through
- * c=7 are copies of those with an additional negation of sqrt(w).
  */
-static int secp256k1_ellswift_xswiftec_inv_var(secp256k1_fe *t, const secp256k1_fe *x_in, const secp256k1_fe *u_in, int c) {
+static int secp256k1_ellswift_xswiftec_inv_var(secp256k1_fe *t, const secp256k1_ge *p, const secp256k1_fe *u_in, int c) {
     /* The implemented algorithm is this (all arithmetic, except involving c, is mod p):
      *
      * - If (c & 2) = 0:
@@ -182,18 +177,18 @@ static int secp256k1_ellswift_xswiftec_inv_var(secp256k1_fe *t, const secp256k1_
      *   - If (c & 1) = 1 and r = 0, fail.
      *   - Let v=(r/s-u)/2.
      * - Let w=sqrt(s).
-     * - If (c & 5) = 0: return -w*(c3*u + v)
-     * - If (c & 5) = 1: return  w*(c4*u + v)
-     * - If (c & 5) = 4: return  w*(c3*u + v)
-     * - If (c & 5) = 5: return -w*(c4*u + v)
+     * - If (c & 1) = 0: let t = w*(c3*u + v)
+     * - If (c & 1) = 1: let t = w*(c4*u + v)
+     * - If (t & 1) == (y & 1): return t
+     * - If (y & 1) != (y & 1): return -t
      */
-    secp256k1_fe x = *x_in, u = *u_in, u2, g, v, s, m, r, q;
+    secp256k1_fe x = p->x, u = *u_in, u2, g, v, s, m, r, q;
     int ret;
 
     secp256k1_fe_normalize_weak(&x);
     secp256k1_fe_normalize_weak(&u);
 
-    VERIFY_CHECK(c >= 0 && c < 8);
+    VERIFY_CHECK(c >= 0 && c < 4);
 
     if (!(c & 2)) {
         /* c is in {0, 1, 4, 5}. In this case we look for an inverse under the x1 (if c=0 or
@@ -290,14 +285,13 @@ static int secp256k1_ellswift_xswiftec_inv_var(secp256k1_fe *t, const secp256k1_
     VERIFY_CHECK(ret);
 
     /* Return logic. */
-    if ((c & 5) == 0 || (c & 5) == 5) {
-        secp256k1_fe_negate(&m, &m, 1); /* m = -w */
-    }
-    /* Now m = {w if c&5=0 or c&5=5; -w otherwise}. */
     secp256k1_fe_mul(&u, &u, c&1 ? &secp256k1_ellswift_c4 : &secp256k1_ellswift_c3);
-    /* u = {c4 if c&1=1; c3 otherwise}*u */
-    secp256k1_fe_add(&u, &v); /* u = {c4 if c&1=1; c3 otherwise}*u + v */
+    secp256k1_fe_add(&u, &v);
     secp256k1_fe_mul(t, &m, &u);
+    secp256k1_fe_normalize_var(t);
+    x = p->y;
+    secp256k1_fe_normalize_var(&x);
+    if (secp256k1_fe_is_odd(t) != secp256k1_fe_is_odd(&x)) secp256k1_fe_negate(t, t, 1);
     return 1;
 }
 
@@ -324,13 +318,13 @@ static void secp256k1_ellswift_prng(unsigned char* out32, const secp256k1_sha256
 #endif
 }
 
-/** Find an ElligatorSwift encoding (u, t) for X coordinate x, and random Y coordinate.
+/** Find an ElligatorSwift encoding (u, t) for point p.
  *
  * u32 is the 32-byte big endian encoding of u; t is the output field element t that still
  * needs encoding.
  *
  * hasher is a hasher in the secp256k1_ellswift_prng sense, with the same restrictions. */
-static void secp256k1_ellswift_xelligatorswift_var(unsigned char *u32, secp256k1_fe *t, const secp256k1_fe *x, const secp256k1_sha256 *hasher) {
+static void secp256k1_ellswift_elligatorswift_var(unsigned char *u32, secp256k1_fe *t, const secp256k1_ge *p, const secp256k1_sha256 *hasher) {
     /* Pool of 3-bit branch values. */
     unsigned char branch_hash[32];
     /* Number of 3-bit values in branch_hash left. */
@@ -347,11 +341,11 @@ static void secp256k1_ellswift_xelligatorswift_var(unsigned char *u32, secp256k1
         /* If the pool of branch values is empty, populate it. */
         if (branches_left == 0) {
             secp256k1_ellswift_prng(branch_hash, hasher, cnt++);
-            branches_left = 64;
+            branches_left = 128;
         }
         /* Take a 3-bit branch value from the branch pool (top bit is discarded). */
         --branches_left;
-        branch = (branch_hash[branches_left >> 1] >> ((branches_left & 1) << 2)) & 7;
+        branch = (branch_hash[branches_left >> 2] >> ((branches_left & 3) << 1)) & 3;
         /* Compute a new u value by hashing. */
         secp256k1_ellswift_prng(u32, hasher, cnt++);
         /* overflow is not a problem (we prefer uniform u32 over uniform u). */
@@ -363,24 +357,10 @@ static void secp256k1_ellswift_xelligatorswift_var(unsigned char *u32, secp256k1
         VERIFY_CHECK(!secp256k1_fe_normalizes_to_zero_var(&u));
 #endif
         /* Find a remainder t, and return it if found. */
-        if (secp256k1_ellswift_xswiftec_inv_var(t, x, &u, branch)) {
+        if (secp256k1_ellswift_xswiftec_inv_var(t, p, &u, branch)) {
             secp256k1_fe_normalize_var(t);
             break;
         }
-    }
-}
-
-/** Find an ElligatorSwift encoding (u, t) for point P.
- *
- * This is similar secp256k1_ellswift_xelligatorswift_var, except it takes a full group element p
- * as input, and returns an encoding that matches the provided Y coordinate rather than a random
- * one.
- */
-static void secp256k1_ellswift_elligatorswift_var(unsigned char *u32, secp256k1_fe *t, const secp256k1_ge *p, const secp256k1_sha256 *hasher) {
-    secp256k1_ellswift_xelligatorswift_var(u32, t, &p->x, hasher);
-    if (secp256k1_fe_is_odd(t) != secp256k1_fe_is_odd(&p->y)) {
-        secp256k1_fe_negate(t, t, 1);
-        secp256k1_fe_normalize_var(t);
     }
 }
 
