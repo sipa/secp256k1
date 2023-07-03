@@ -1932,8 +1932,7 @@ static int int256is127(const uint16_t* v) {
     return all_0 || all_1;
 }
 
-static void load256u128(uint16_t* out, const secp256k1_uint128* v) {
-    uint64_t lo = secp256k1_u128_to_u64(v), hi = secp256k1_u128_hi_u64(v);
+static void load256u128(uint16_t* out, uint64_t lo, uint64_t hi) {
     load256two64(out, hi, lo, 0);
 }
 
@@ -1951,7 +1950,7 @@ static void run_int128_test_case(void) {
     unsigned char buf[32];
     uint64_t v[4];
     secp256k1_int128 swa, swz;
-    secp256k1_uint128 uwa, uwz;
+    uint64_t uwa_lo, uwa_hi, uwz_lo, uwz_hi;
     uint64_t ub, uc;
     int64_t sb, sc;
     uint16_t rswa[16], rswz[32], rswr[32], ruwa[16], ruwz[32], ruwr[32];
@@ -1968,14 +1967,14 @@ static void run_int128_test_case(void) {
         v[i] = vi;
     }
     /* Convert those into a 128-bit value and two 64-bit values (signed and unsigned). */
-    secp256k1_u128_load(&uwa, v[1], v[0]);
+    uwa_lo = v[0]; uwa_hi = v[1];
     secp256k1_i128_load(&swa, v[1], v[0]);
     ub = v[2];
     sb = v[2];
     uc = v[3];
     sc = v[3];
     /* Load those also into 16-bit array representations. */
-    load256u128(ruwa, &uwa);
+    load256u128(ruwa, uwa_lo, uwa_hi);
     load256i128(rswa, &swa);
     load256u64(rub, ub, 0);
     load256u64(rsb, sb, 1);
@@ -1983,35 +1982,35 @@ static void run_int128_test_case(void) {
     load256u64(rsc, sc, 1);
     /* test secp256k1_u128_mul */
     mulmod256(ruwr, rub, ruc, NULL);
-    secp256k1_u128_mul(&uwz, ub, uc);
-    load256u128(ruwz, &uwz);
+    secp256k1_u128_mul(&uwz_lo, &uwz_hi, ub, uc);
+    load256u128(ruwz, uwz_lo, uwz_hi);
     CHECK(secp256k1_memcmp_var(ruwr, ruwz, 16) == 0);
     /* test secp256k1_u128_accum_mul */
     mulmod256(ruwr, rub, ruc, NULL);
     add256(ruwr, ruwr, ruwa);
-    uwz = uwa;
-    secp256k1_u128_accum_mul(&uwz, ub, uc);
-    load256u128(ruwz, &uwz);
+    uwz_lo = uwa_lo; uwz_hi = uwa_hi;
+    secp256k1_u128_accum_mul(&uwz_lo, &uwz_hi, ub, uc);
+    load256u128(ruwz, uwz_lo, uwz_hi);
     CHECK(secp256k1_memcmp_var(ruwr, ruwz, 16) == 0);
     /* test secp256k1_u128_accum_u64 */
     add256(ruwr, rub, ruwa);
-    uwz = uwa;
-    secp256k1_u128_accum_u64(&uwz, ub);
-    load256u128(ruwz, &uwz);
+    uwz_lo = uwa_lo; uwz_hi = uwa_hi;
+    secp256k1_u128_accum_u64(&uwz_lo, &uwz_hi, ub);
+    load256u128(ruwz, uwz_lo, uwz_hi);
     CHECK(secp256k1_memcmp_var(ruwr, ruwz, 16) == 0);
     /* test secp256k1_u128_rshift */
     rshift256(ruwr, ruwa, uc % 128, 0);
-    uwz = uwa;
-    secp256k1_u128_rshift(&uwz, uc % 128);
-    load256u128(ruwz, &uwz);
+    uwz_lo = uwa_lo; uwz_hi = uwa_hi;
+    secp256k1_u128_rshift(&uwz_lo, &uwz_hi, uc % 128);
+    load256u128(ruwz, uwz_lo, uwz_hi);
     CHECK(secp256k1_memcmp_var(ruwr, ruwz, 16) == 0);
     /* test secp256k1_u128_to_u64 */
-    CHECK(secp256k1_u128_to_u64(&uwa) == v[0]);
+    CHECK(uwa_lo == v[0]);
     /* test secp256k1_u128_hi_u64 */
-    CHECK(secp256k1_u128_hi_u64(&uwa) == v[1]);
+    CHECK(uwa_hi == v[1]);
     /* test secp256k1_u128_from_u64 */
-    secp256k1_u128_from_u64(&uwz, ub);
-    load256u128(ruwz, &uwz);
+    uwz_hi = 0; uwz_lo = ub;
+    load256u128(ruwz, uwz_lo, uwz_hi);
     CHECK(secp256k1_memcmp_var(rub, ruwz, 16) == 0);
     /* test secp256k1_u128_check_bits */
     {
@@ -2021,7 +2020,7 @@ static void run_int128_test_case(void) {
             if (ruwa[j / 16] >> (j % 16)) uwa_bits = 1 + j;
         }
         for (j = 0; j < 128; ++j) {
-            CHECK(secp256k1_u128_check_bits(&uwa, j) == (uwa_bits <= j));
+            CHECK(secp256k1_u128_check_bits(uwa_lo, uwa_hi, j) == (uwa_bits <= j));
         }
     }
     /* test secp256k1_i128_mul */
@@ -2137,13 +2136,13 @@ static void run_int128_test_case(void) {
 
 static void run_int128_tests(void) {
     {   /* secp256k1_u128_accum_mul */
-        secp256k1_uint128 res;
+        uint64_t res_lo, res_hi;
 
         /* Check secp256k1_u128_accum_mul overflow */
-        secp256k1_u128_mul(&res, UINT64_MAX, UINT64_MAX);
-        secp256k1_u128_accum_mul(&res, UINT64_MAX, UINT64_MAX);
-        CHECK(secp256k1_u128_to_u64(&res) == 2);
-        CHECK(secp256k1_u128_hi_u64(&res) == 18446744073709551612U);
+        secp256k1_u128_mul(&res_lo, &res_hi, UINT64_MAX, UINT64_MAX);
+        secp256k1_u128_accum_mul(&res_lo, &res_hi, UINT64_MAX, UINT64_MAX);
+        CHECK(res_lo == 2);
+        CHECK(res_hi == 18446744073709551612U);
     }
     {   /* secp256k1_u128_accum_mul */
         secp256k1_int128 res;

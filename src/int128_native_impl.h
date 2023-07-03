@@ -4,42 +4,32 @@
 #include "int128.h"
 #include "util.h"
 
-static SECP256K1_INLINE void secp256k1_u128_load(secp256k1_uint128 *r, uint64_t hi, uint64_t lo) {
-    *r = (((uint128_t)hi) << 64) + lo;
+static SECP256K1_INLINE void secp256k1_u128_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b) {
+    uint128_t r = (uint128_t)a * b;
+    *hi = r >> 64;
+    *lo = r;
 }
 
-static SECP256K1_INLINE void secp256k1_u128_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b) {
-   *r = (uint128_t)a * b;
+static SECP256K1_INLINE void secp256k1_u128_accum_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b) {
+    uint128_t r = (((uint128_t)(*hi)) << 64) + (*lo) + (uint128_t)a * b;
+    *hi = r >> 64;
+    *lo = r;
 }
 
-static SECP256K1_INLINE void secp256k1_u128_accum_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b) {
-   *r += (uint128_t)a * b;
+static SECP256K1_INLINE void secp256k1_u128_accum_u64(uint64_t* lo, uint64_t* hi, uint64_t a) {
+    uint128_t r = (((uint128_t)(*hi)) << 64) + (*lo) + a;
+    *hi = r >> 64;
+    *lo = r;
 }
 
-static SECP256K1_INLINE void secp256k1_u128_accum_u64(secp256k1_uint128 *r, uint64_t a) {
-   *r += a;
+static SECP256K1_INLINE void secp256k1_u128_rshift(uint64_t* lo, uint64_t* hi, unsigned int n) {
+    uint128_t r = ((((uint128_t)(*hi)) << 64) + (*lo)) >> n;
+    *hi = r >> 64;
+    *lo = r;
 }
 
-static SECP256K1_INLINE void secp256k1_u128_rshift(secp256k1_uint128 *r, unsigned int n) {
-   VERIFY_CHECK(n < 128);
-   *r >>= n;
-}
-
-static SECP256K1_INLINE uint64_t secp256k1_u128_to_u64(const secp256k1_uint128 *a) {
-   return (uint64_t)(*a);
-}
-
-static SECP256K1_INLINE uint64_t secp256k1_u128_hi_u64(const secp256k1_uint128 *a) {
-   return (uint64_t)(*a >> 64);
-}
-
-static SECP256K1_INLINE void secp256k1_u128_from_u64(secp256k1_uint128 *r, uint64_t a) {
-   *r = a;
-}
-
-static SECP256K1_INLINE int secp256k1_u128_check_bits(const secp256k1_uint128 *r, unsigned int n) {
-   VERIFY_CHECK(n < 128);
-   return (*r >> n == 0);
+static SECP256K1_INLINE int secp256k1_u128_check_bits(uint64_t lo, uint64_t hi, unsigned int n) {
+    return (((((uint128_t)(hi)) << 64) + (lo)) >> n) == 0;
 }
 
 static SECP256K1_INLINE void secp256k1_i128_load(secp256k1_int128 *r, int64_t hi, uint64_t lo) {

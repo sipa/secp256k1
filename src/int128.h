@@ -12,40 +12,11 @@
 #    error "Please select int128 implementation"
 #  endif
 
-/* Construct an unsigned 128-bit value from a high and a low 64-bit value. */
-static SECP256K1_INLINE void secp256k1_u128_load(secp256k1_uint128 *r, uint64_t hi, uint64_t lo);
-
-/* Multiply two unsigned 64-bit values a and b and write the result to r. */
-static SECP256K1_INLINE void secp256k1_u128_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b);
-
-/* Multiply two unsigned 64-bit values a and b and add the result to r.
- * The final result is taken modulo 2^128.
- */
-static SECP256K1_INLINE void secp256k1_u128_accum_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b);
-
-/* Add an unsigned 64-bit value a to r.
- * The final result is taken modulo 2^128.
- */
-static SECP256K1_INLINE void secp256k1_u128_accum_u64(secp256k1_uint128 *r, uint64_t a);
-
-/* Unsigned (logical) right shift.
- * Non-constant time in n.
- */
-static SECP256K1_INLINE void secp256k1_u128_rshift(secp256k1_uint128 *r, unsigned int n);
-
-/* Return the low 64-bits of a 128-bit value as an unsigned 64-bit value. */
-static SECP256K1_INLINE uint64_t secp256k1_u128_to_u64(const secp256k1_uint128 *a);
-
-/* Return the high 64-bits of a 128-bit value as an unsigned 64-bit value. */
-static SECP256K1_INLINE uint64_t secp256k1_u128_hi_u64(const secp256k1_uint128 *a);
-
-/* Write an unsigned 64-bit value to r. */
-static SECP256K1_INLINE void secp256k1_u128_from_u64(secp256k1_uint128 *r, uint64_t a);
-
-/* Tests if r is strictly less than to 2^n.
- * n must be strictly less than 128.
- */
-static SECP256K1_INLINE int secp256k1_u128_check_bits(const secp256k1_uint128 *r, unsigned int n);
+static SECP256K1_INLINE void secp256k1_u128_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b);
+static SECP256K1_INLINE void secp256k1_u128_accum_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b);
+static SECP256K1_INLINE void secp256k1_u128_accum_u64(uint64_t* lo, uint64_t* hi, uint64_t a);
+static SECP256K1_INLINE void secp256k1_u128_rshift(uint64_t* lo, uint64_t* hi, unsigned int n);
+static SECP256K1_INLINE int secp256k1_u128_check_bits(uint64_t lo, uint64_t hi, unsigned int n);
 
 /* Construct an signed 128-bit value from a high and a low 64-bit value. */
 static SECP256K1_INLINE void secp256k1_i128_load(secp256k1_int128 *r, int64_t hi, uint64_t lo);

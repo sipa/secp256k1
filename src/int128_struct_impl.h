@@ -50,63 +50,47 @@ static SECP256K1_INLINE int64_t secp256k1_mul128(int64_t a, int64_t b, int64_t* 
 }
 #endif
 
-static SECP256K1_INLINE void secp256k1_u128_load(secp256k1_uint128 *r, uint64_t hi, uint64_t lo) {
-    r->hi = hi;
-    r->lo = lo;
+static SECP256K1_INLINE void secp256k1_u128_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b) {
+    (*lo) = secp256k1_umul128(a, b, hi);
 }
 
-static SECP256K1_INLINE void secp256k1_u128_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b) {
-   r->lo = secp256k1_umul128(a, b, &r->hi);
+static SECP256K1_INLINE void secp256k1_u128_accum_mul(uint64_t* lo, uint64_t* hi, uint64_t a, uint64_t b) {
+    uint64_t v_lo, v_hi;
+    v_lo = secp256k1_umul128(a, b, &v_hi);
+    (*lo) += v_lo;
+    (*hi) += v_hi + ((*lo) < v_lo);
 }
 
-static SECP256K1_INLINE void secp256k1_u128_accum_mul(secp256k1_uint128 *r, uint64_t a, uint64_t b) {
-   uint64_t lo, hi;
-   lo = secp256k1_umul128(a, b, &hi);
-   r->lo += lo;
-   r->hi += hi + (r->lo < lo);
-}
-
-static SECP256K1_INLINE void secp256k1_u128_accum_u64(secp256k1_uint128 *r, uint64_t a) {
-   r->lo += a;
-   r->hi += r->lo < a;
+static SECP256K1_INLINE void secp256k1_u128_accum_u64(uint64_t* lo, uint64_t* hi, uint64_t a) {
+    (*lo) += a;
+    (*hi) += ((*lo) < a);
 }
 
 /* Unsigned (logical) right shift.
  * Non-constant time in n.
  */
-static SECP256K1_INLINE void secp256k1_u128_rshift(secp256k1_uint128 *r, unsigned int n) {
-   VERIFY_CHECK(n < 128);
-   if (n >= 64) {
-     r->lo = r->hi >> (n-64);
-     r->hi = 0;
-   } else if (n > 0) {
+static SECP256K1_INLINE void secp256k1_u128_rshift(uint64_t* lo, uint64_t* hi, unsigned int n) {
+    VERIFY_CHECK(n < 128);
+    if (n >= 64) {
+        (*lo) = (*hi) >> (n - 64);
+        (*hi) = 0;
+    } else if (n > 0) {
 #if defined(_MSC_VER) && defined(_M_X64)
-     VERIFY_CHECK(n < 64);
-     r->lo = __shiftright128(r->lo, r->hi, n);
+        VERIFY_CHECK(n < 64);
+        (*lo) = __shiftright128(*lo, *hi, n);
 #else
-     r->lo = ((1U * r->hi) << (64-n)) | r->lo >> n;
+        (*lo) = ((1U * (*hi)) << (64-n)) | ((*lo) >> n);
 #endif
-     r->hi >>= n;
-   }
+        (*hi) >>= n;
+    }
 }
 
-static SECP256K1_INLINE uint64_t secp256k1_u128_to_u64(const secp256k1_uint128 *a) {
-   return a->lo;
-}
-
-static SECP256K1_INLINE uint64_t secp256k1_u128_hi_u64(const secp256k1_uint128 *a) {
-   return a->hi;
-}
-
-static SECP256K1_INLINE void secp256k1_u128_from_u64(secp256k1_uint128 *r, uint64_t a) {
-   r->hi = 0;
-   r->lo = a;
-}
-
-static SECP256K1_INLINE int secp256k1_u128_check_bits(const secp256k1_uint128 *r, unsigned int n) {
-   VERIFY_CHECK(n < 128);
-   return n >= 64 ? r->hi >> (n - 64) == 0
-                  : r->hi == 0 && r->lo >> n == 0;
+static SECP256K1_INLINE int secp256k1_u128_check_bits(uint64_t lo, uint64_t hi, unsigned int n) {
+    if (n < 64) {
+        return hi == 0 && (lo >> n) == 0;
+    } else {
+        return hi >> (n - 64) == 0;
+    }
 }
 
 static SECP256K1_INLINE void secp256k1_i128_load(secp256k1_int128 *r, int64_t hi, uint64_t lo) {
