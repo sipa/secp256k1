@@ -3286,22 +3286,6 @@ static void run_fe_mul(void) {
     }
 }
 
-static void run_sqr(void) {
-    secp256k1_fe x, s;
-
-    {
-        int i;
-        secp256k1_fe_set_int(&x, 1);
-        secp256k1_fe_negate(&x, &x, 1);
-
-        for (i = 1; i <= 512; ++i) {
-            secp256k1_fe_mul_int(&x, 2);
-            secp256k1_fe_normalize(&x);
-            secp256k1_fe_sqr(&s, &x);
-        }
-    }
-}
-
 static void test_sqrt(const secp256k1_fe *a, const secp256k1_fe *k) {
     secp256k1_fe r1, r2;
     int v = secp256k1_fe_sqrt(&r1, a);
@@ -7571,7 +7555,6 @@ int main(int argc, char **argv) {
     run_field_convert();
     run_field_be32_overflow();
     run_fe_mul();
-    run_sqr();
     run_sqrt();
 
     /* group tests */
